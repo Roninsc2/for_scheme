@@ -44,54 +44,76 @@ void TLexer::Read() {
     std::string value = "";
     while(fin.get(c)) {
         value += c;
-        if (int(c) == 34 && currentState != State_String) {
-            ProcessEvent(Event_End, value);
-            ProcessEvent(Event_String, value);
-            bool IsSpecialForString = false;
-            while(1) {
-                if (!fin.get(c)) {
-                    ProcessEvent(Event_Error, value);
-                    break;
-                }
-                value += c;
-                if (c == '\\' && !IsSpecialForString) {
-                    IsSpecialForString = true;
-                } else if (c == '\\' && !IsSpecialForString) {
-                    ProcessEvent(Event_Error, value);
-                    break;
-                } else if (c == '\"' && !IsSpecialForString) {
-                    break;
-                } else if (IsSpecialForString && (c == '\\' || c == '\"')) {
-                    IsSpecialForString = false;
+        switch (c) {
+
+        case 34: {
+            if (currentState != State_String) {
+                ProcessEvent(Event_End, value);
+                ProcessEvent(Event_String, value);
+                bool IsSpecialForString = false;
+                while(1) {
+                    if (!fin.get(c)) {
+                        ProcessEvent(Event_Error, value);
+                        break;
+                    }
+                    value += c;
+                    if (c == '\\' && !IsSpecialForString) {
+                        IsSpecialForString = true;
+                    } else if (c == '\\' && !IsSpecialForString) {
+                        ProcessEvent(Event_Error, value);
+                        break;
+                    } else if (c == '\"' && !IsSpecialForString) {
+                        break;
+                    } else if (IsSpecialForString && (c == '\\' || c == '\"')) {
+                        IsSpecialForString = false;
+                    }
                 }
             }
-        } else if (int(c) == '\n') {
+            break;
+        }
+
+        case '\n' : {
             ProcessEvent(Event_NewLine, value);
-        } else if (c == 39) {
-          ProcessEvent(Event_Symbol, value);
-        } else if (c == '.' && currentState == State_Num) {
-            ProcessEvent(Event_Point, value);
-        } else if ((c == 'e')
-                   && currentState == State_Num)
-        {
-            fin.get(c);
-            value += c;
-            if (c == '+' || c == '-') {
-                ProcessEvent(Event_Exponent, value);
+            break;
+        }
+
+        case 39 : {
+            ProcessEvent(Event_Symbol, value);
+            break;
+        }
+
+        case '.' : {
+            if (currentState == State_Num) {
+                ProcessEvent(Event_Point, value);
             }
-        } else if (isspecial(c)) {
-            ProcessEvent(Event_Special, value);
-        } else if (isspace(c)) {
-            ProcessEvent(Event_Space, value);
-        } else if (isdigit(c)) {
-            ProcessEvent(Event_Didgit, value);
-        } else if (c == '(') {
+            break;
+        }
+
+        case 'e' : {
+            if (currentState == State_Num) {
+                fin.get(c);
+                value += c;
+                if (c == '+' || c == '-') {
+                    ProcessEvent(Event_Exponent, value);
+                }
+            } else {
+                ProcessEvent(Event_Letter, value);
+            }
+            break;
+        }
+
+        case '(' : {
+            ProcessEvent(Event_End, value);
             ProcessEvent(Event_Lbkt, value);
-        } else if (c == ')') {
+            break;
+        }
+
+        case ')' : {
+            ProcessEvent(Event_End, value);
             ProcessEvent(Event_Rbkt, value);
-        } else if (isalpha(c)) {
-            ProcessEvent(Event_Letter, value);
-        } else if (c == '#') {
+            break;
+        }
+        case '#' : {
             ProcessEvent(Event_End, value);
             fin.get(c);
             value += c;
@@ -104,8 +126,22 @@ void TLexer::Read() {
             } else {
                 ProcessEvent(Event_Error, value);
             }
-        } else {
-            ProcessEvent(Event_Error, value);
+            break;
+        }
+        default : {
+            if (isspecial(c)) {
+                ProcessEvent(Event_Special, value);
+            } else if (isspace(c)) {
+                ProcessEvent(Event_Space, value);
+            } else if (isdigit(c)) {
+                ProcessEvent(Event_Didgit, value);
+            } else if (isalpha(c)) {
+                ProcessEvent(Event_Letter, value);
+            } else {
+                ProcessEvent(Event_Error, value);
+            }
+            break;
+        }
         }
     }
     value += " ";
