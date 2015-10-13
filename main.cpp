@@ -5,7 +5,12 @@ using namespace std;
 
 int main()
 {
-    TLexer lex("test.txt");
+    try {
+        TLexer lex("test.txt");
+    } catch (LexerException* e) {
+        std::cerr << e->what() << std::endl;
+        delete e;
+    }
     return 0;
 }
 

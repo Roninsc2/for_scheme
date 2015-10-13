@@ -23,7 +23,7 @@ bool isspecial(char c) {
 void TLexer::Read() {
     char c;
     std::string value = "";
-    while (!fin.eof()) {
+    while (!FileEOF()) {
         c = GetChar();
         value += c;
         switch (c) {
@@ -87,6 +87,10 @@ void TLexer::UnGetChar() {
     fin.unget();
 }
 
+bool TLexer::FileEOF() {
+    return fin.eof();
+}
+
 void TLexer::FindToken(States state, std::string& value) {
     if (lastState == state && (state == State_Space || state == State_NewLine
                                ||state == State_Tab))
@@ -103,33 +107,34 @@ void TLexer::FindToken(States state, std::string& value) {
 void TLexer::ReadString(std::string &value) {
     bool IsSpecialForString = false;
     while(true) {
-        char c = GetChar();
-        if (c == EOF) {
-            FindToken(State_Error, value);
+        if (FileEOF()) {
+            throw new ExceptionEOF(value);
             break;
         }
+        char c = GetChar();
         value += c;
         if (c == '\\' && !IsSpecialForString) {
             IsSpecialForString = true;
-        } else if (c == '\\' && !IsSpecialForString) {
-            FindToken(State_Error, value);
-            break;
+        } else if ((c == '\\' || c == '\"')  && IsSpecialForString) {
+            IsSpecialForString = false;
+            continue;
         } else if (c == '\"' && !IsSpecialForString) {
             FindToken(State_String, value);
             break;
-        } else if (IsSpecialForString && (c == '\\' || c == '\"')) {
-            IsSpecialForString = false;
+        } else if (IsSpecialForString) {
+            throw new ExceptionIncorrectChar(value);
+            break;
         }
     }
 }
 
 void TLexer::ReadSymbol(std::string &value) {
     while (true) {
-        char c = GetChar();
-        if (c == EOF) {
-            FindToken(State_Error, value);
+        if (FileEOF()) {
+            throw new ExceptionEOF(value);
             break;
         }
+        char c = GetChar();
         if (isspecial(c) || isalpha(c) || isdigit(c)) {
             value += c;
         } else {
@@ -150,17 +155,17 @@ void TLexer::ReadSharp(std::string &value) {
     } else if (c == 't' || c == 'f') {
         FindToken(State_Bool, value);
     } else {
-        FindToken(State_Error, value);
+        throw new ExceptionIncorrectChar(value);
     }
 }
 
 void TLexer::ReadIdent(std::string &value) {
     while (true) {
-        char c = GetChar();
-        if (c == EOF) {
-            FindToken(State_Error, value);
+        if (FileEOF()) {
+            throw new ExceptionEOF(value);
             break;
         }
+        char c = GetChar();
         if (isspecial(c) || isdigit(c) || isalpha(c)) {
             value += c;
         } else {
@@ -174,11 +179,11 @@ void TLexer::ReadIdent(std::string &value) {
 void TLexer::ReadNumber(std::string &value) {
     States state = State_Int;
     while (true) {
-        char c = GetChar();
-        if (c == EOF) {
-            FindToken(State_Error, value);
+        if (FileEOF()) {
+            throw new ExceptionEOF(value);
             break;
         }
+        char c = GetChar();
         if (isdigit(c)) {
             value += c;
         } else if (c == '.' && state == State_Int) {
