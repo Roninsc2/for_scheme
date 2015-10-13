@@ -1,4 +1,1 @@
-(define (name args) 
-	( #\a #t "a \"\" aa\\")
-	(+ 1234 123.00e+001))
-(((( )))
+(define 1 2 3 abs      ) 

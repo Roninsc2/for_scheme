@@ -6,8 +6,9 @@ CONFIG -= qt
 QMAKE_CXXFLAGS += -std=c++11
 
 SOURCES += main.cpp \
-    lekser.cpp
+    lexer.cpp
 
 HEADERS += \
-    lekser.h
+    lexer.h
+
 

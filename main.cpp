@@ -1,10 +1,11 @@
 #include <iostream>
-#include <lekser.h>
+#include "lexer.h"
 
 using namespace std;
 
-int main() {
-    TLexer lexer("test.txt");
+int main()
+{
+    TLexer lex("test.txt");
     return 0;
 }
 
