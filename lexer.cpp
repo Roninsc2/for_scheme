@@ -20,6 +20,40 @@ bool isspecial(char c) {
             || c == '?' || c == '_' || c == '~'|| c == '!');
 }
 
+bool TLexer::IsEndToken(char c) {
+    switch (c) {
+        case '\n': {
+            return true;
+        }
+        case '\t': {
+            return true;
+        }
+        case ' ': {
+            return true;
+        }
+        case ')': {
+            UnGetChar();
+            return true;
+        }
+        case '(': {
+            UnGetChar();
+            return true;
+        }
+        default: {
+            return false;
+        }
+    }
+}
+
+void TLexer::IsCorrectToken(char c, std::string& value, States state) {
+    if (IsEndToken(c)) {
+        FindToken(state, value);
+    } else {
+        value += c;
+        throw new ExceptionIncorrectChar(value, PosLine, PosColumn);
+    }
+}
+
 void TLexer::Read() {
     char c;
     std::string value = "";
@@ -29,16 +63,6 @@ void TLexer::Read() {
         switch (c) {
             case 34: {
                 ReadString(value);
-                break;
-            }
-
-            case '\t': {
-                FindToken(State_Tab, value);
-                break;
-            }
-
-            case '\n': {
-                FindToken(State_NewLine,value);
                 break;
             }
 
@@ -60,16 +84,15 @@ void TLexer::Read() {
                 ReadSharp(value);
                 break;
             }
-            case ' ': {
-                FindToken(State_Space, value);
-                break;
-            }
             default: {
                 if (isspecial(c) || isalpha(c)) {
                     ReadIdent(value);
                 } else if (isdigit(c)) {
                     ReadNumber(value);
+                } else if (IsEndToken(c)) {
+                    value.erase(value.size() - 1, value.size());
                 }
+                break;
             }
         }
     }
@@ -80,11 +103,18 @@ void TLexer::Read() {
 char TLexer::GetChar() {
     char c;
     fin.get(c);
+    if (c == '\n') {
+        PosLine += 1;
+        PosColumn = 1;
+    } else {
+        PosColumn += 1;
+    }
     return c;
 }
 
 void TLexer::UnGetChar() {
     fin.unget();
+    PosColumn -= 1;
 }
 
 bool TLexer::FileEOF() {
@@ -92,23 +122,16 @@ bool TLexer::FileEOF() {
 }
 
 void TLexer::FindToken(States state, std::string& value) {
-    if (lastState == state && (state == State_Space || state == State_NewLine
-                               ||state == State_Tab))
-    {
-        value.clear();
-    } else {
-        Tokens.push_back(Token(state, value));
-        std::cout << state << "\t" << value << std::endl;
-        value.clear();
-        lastState = state;
-    }
+    Tokens.push_back(Token(state, value));
+    std::cout << state << "\t" << value << std::endl;
+    value.clear();
 }
 
 void TLexer::ReadString(std::string &value) {
     bool IsSpecialForString = false;
     while(true) {
         if (FileEOF()) {
-            throw new ExceptionEOF(value);
+            throw new ExceptionEOF(value, PosLine, PosColumn);
             break;
         }
         char c = GetChar();
@@ -119,10 +142,11 @@ void TLexer::ReadString(std::string &value) {
             IsSpecialForString = false;
             continue;
         } else if (c == '\"' && !IsSpecialForString) {
-            FindToken(State_String, value);
+            c = GetChar();
+            IsCorrectToken(c, value, State_String);
             break;
         } else if (IsSpecialForString) {
-            throw new ExceptionIncorrectChar(value);
+            throw new ExceptionIncorrectChar(value, PosLine, PosColumn);
             break;
         }
     }
@@ -131,15 +155,14 @@ void TLexer::ReadString(std::string &value) {
 void TLexer::ReadSymbol(std::string &value) {
     while (true) {
         if (FileEOF()) {
-            throw new ExceptionEOF(value);
+            throw new ExceptionEOF(value, PosLine, PosColumn);
             break;
         }
         char c = GetChar();
         if (isspecial(c) || isalpha(c) || isdigit(c)) {
             value += c;
         } else {
-            UnGetChar();
-            FindToken(State_Symbol, value);
+            IsCorrectToken(c, value, State_Symbol);
             break;
         }
     }
@@ -151,26 +174,27 @@ void TLexer::ReadSharp(std::string &value) {
     if (c == '\\') {
         c = GetChar();
         value += c;
-        FindToken(State_Char, value);
+        c = GetChar();
+        IsCorrectToken(c, value, State_Char);
     } else if (c == 't' || c == 'f') {
-        FindToken(State_Bool, value);
+        c = GetChar();
+        IsCorrectToken(c, value, State_Bool);
     } else {
-        throw new ExceptionIncorrectChar(value);
+        throw new ExceptionIncorrectChar(value, PosLine, PosColumn);
     }
 }
 
 void TLexer::ReadIdent(std::string &value) {
     while (true) {
         if (FileEOF()) {
-            throw new ExceptionEOF(value);
+            throw new ExceptionEOF(value, PosLine, PosColumn);
             break;
         }
         char c = GetChar();
         if (isspecial(c) || isdigit(c) || isalpha(c)) {
             value += c;
         } else {
-            UnGetChar();
-            FindToken(State_Ident, value);
+            IsCorrectToken(c, value, State_Ident);
             break;
         }
     }
@@ -180,7 +204,7 @@ void TLexer::ReadNumber(std::string &value) {
     States state = State_Int;
     while (true) {
         if (FileEOF()) {
-            throw new ExceptionEOF(value);
+            throw new ExceptionEOF(value, PosLine, PosColumn);
             break;
         }
         char c = GetChar();
@@ -197,15 +221,11 @@ void TLexer::ReadNumber(std::string &value) {
                 value += c_temp;
                 value += c_temp2;
             } else {
-                UnGetChar();
-                UnGetChar();
-                UnGetChar();
-                FindToken(state, value);
+                throw new ExceptionIncorrectChar(value, PosLine, PosColumn);
                 break;
             }
         } else {
-             UnGetChar();
-             FindToken(state, value);
+             IsCorrectToken(c, value, state);
              break;
         }
     }

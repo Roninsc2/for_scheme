@@ -12,15 +12,12 @@ enum States {
     State_Ident, //3
     State_Lbkt, //4
     State_Rbkt, //5
-    State_Space, //6
-    State_NewLine, //7
-    State_Char, //8
-    State_String, //9
-    State_Symbol, //10
-    State_Tab,//11
-    State_EOF, // 12
+    State_Char, //6
+    State_String, //7
+    State_Symbol, //8
+    State_EOF, // 9
 };
-const size_t StatesCount = 13;
+const size_t StatesCount = 10;
 
 class TLexer {
 
@@ -33,6 +30,8 @@ private:
     char GetChar();
     void UnGetChar();
     bool FileEOF();
+    bool IsEndToken(char c);
+    void IsCorrectToken(char c, std::string& value, States state);
     void FindToken(States state, std::string& value);
     void ReadString(std::string& value);
     void ReadSymbol(std::string& value);
@@ -41,7 +40,6 @@ private:
     void ReadNumber(std::string& value);
 
 private:
-    States lastState = State_Space;
     struct Token {
         Token(States s, std::string v) {
             state = s;
@@ -52,6 +50,8 @@ private:
         std::string value;
     };
     std::ifstream fin;
+    size_t PosColumn = 1;
+    size_t PosLine = 1;
 
 public:
     std::vector< Token > Tokens;
@@ -66,26 +66,38 @@ public:
 
 class ExceptionEOF : public LexerException {
 public:
-    ExceptionEOF(std::string value) {
+    ExceptionEOF(std::string value, size_t line, size_t column) {
         errorString = value;
+        ErrLine = line;
+        ErrColumn = column;
     }
     virtual const char* what() const throw() override {
-        std::string str = ("Found premature termination in " + errorString);
+        std::string str = ("Found premature termination in " + errorString + " in line "
+                           + std::to_string(ErrLine) + " in colomn "
+                           + std::to_string(ErrColumn));
         return str.c_str();
     }
 public:
     std::string errorString;
+    size_t ErrLine;
+    size_t ErrColumn;
 };
 
 class ExceptionIncorrectChar : public LexerException {
 public:
-    ExceptionIncorrectChar(std::string value) {
+    ExceptionIncorrectChar(std::string value, size_t line, size_t column) {
         errorString = value;
+        ErrLine = line;
+        ErrColumn = column;
     }
     virtual const char* what() const throw() override {
-        std::string str = ("Input incorrect character : " + errorString);
+        std::string str = ("Input incorrect character : " + errorString + " in line "
+                           + std::to_string(ErrLine) + " in colomn "
+                           + std::to_string(ErrColumn));
         return str.c_str();
     }
 public:
     std::string errorString;
+    size_t ErrLine;
+    size_t ErrColumn;
 };

@@ -1,1 +1,2 @@
-(define 1 2 3 abs "aa\"")
+(define 1 2 3as abs "aa\"" 123.1e+001) 
+('aab(kkk b)) "\"
