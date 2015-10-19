@@ -6,8 +6,13 @@ CONFIG -= qt
 QMAKE_CXXFLAGS += -std=c++11
 
 SOURCES += main.cpp \
-    lekser.cpp
+    lexer.cpp \
+    parser.cpp \
+    vlist.cpp
 
 HEADERS += \
-    lekser.h
+    lexer.h \
+    parser.h \
+    vlist.h \
+    ast.h
 
