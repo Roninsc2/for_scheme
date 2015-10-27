@@ -7,18 +7,19 @@ class TParser {
 
 public:
     TParser(const std::string fileName);
-    ~TParser();
+    ~TParser(){}
+    void GetNextToken();
 
 private:
-    OpPlus(std::vector< std::string > values);
-    OpMinus(std::vector< std::string > values);
-    OpMult(std::vector< std::string > values);
-    //OpDiv(std::vector< std::string > values);
-    //OpDiv(std::vector< std::string > values);
-    //OpEqually(std::vector< std::string > values);
-
+    ExprAST* ParseCallExprAST();
+    ExprAST* GetExprType();
+    VList* ParseList();
+    VList* GetListType();
 
 private:
     std::shared_ptr< TLexer > Lexer;
+    Token CurrentToken;
+    int i = 0;
+    std::vector< ExprAST* > root;
 };
 

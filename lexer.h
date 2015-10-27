@@ -19,6 +19,17 @@ enum States {
 };
 const size_t StatesCount = 10;
 
+
+struct Token {
+    Token(){}
+    Token(States s, std::string v) {
+        state = s;
+        value = v;
+    }
+    States state;
+    std::string value;
+};
+
 class TLexer {
 
 public:
@@ -40,15 +51,6 @@ private:
     void ReadNumber(std::string& value);
 
 private:
-    struct Token {
-        Token(States s, std::string v) {
-            state = s;
-            value = v;
-        }
-
-        States state;
-        std::string value;
-    };
     std::ifstream fin;
     size_t PosColumn = 1;
     size_t PosLine = 1;

@@ -7,7 +7,8 @@ enum EListType {
     LT_String,//2
     LT_Symbol,//3
     LT_Char,//4
-    LT_Bool//5
+    LT_Bool,//5
+    LT_List
 };
 
 class TListType {
@@ -22,12 +23,13 @@ class VList {
 public:
     VList(TListTypePtr  val): value(val){}
     ~VList(){}
-    void InsertAfter(VList& after);
-    void InsertBefore(VList& before);
+    void InsertAfter(VList* after);
+    void InsertBefore(VList* before);
+    void DeleteList();
     size_t ListLength();
 private:
     TListTypePtr value;
-    VList* next = nullptr;
+    std::shared_ptr<VList> next;
 };
 
 
@@ -44,6 +46,26 @@ public:
 private:
     EListType Type = LT_Int;
     int value;
+
+};
+
+class TListTypeList : public TListType {
+
+public:
+    TListTypeList(VList* val): value(val) {}
+    ~TListTypeList(){
+        delete value;
+    }
+
+    VList* GetValue() {
+        return value;
+    }
+    EListType GetType() {
+        return Type;
+    }
+private:
+    EListType Type = LT_List;
+    VList* value;
 
 };
 
