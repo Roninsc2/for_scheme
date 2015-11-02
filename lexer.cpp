@@ -71,6 +71,11 @@ void TLexer::Read() {
                 break;
             }
 
+            case '.' : {
+                FindToken(State_Point, value);
+                break;
+            }
+
             case '(': {
                 FindToken(State_Lbkt,value);
                 break;

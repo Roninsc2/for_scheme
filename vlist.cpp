@@ -3,28 +3,28 @@
 
 void VList::InsertAfter(VList* after)
 {
-    VList* last = this;
-    while (last->next != nullptr) {
-        last = last->next.get();
+    TPair* last = list.get();
+    while (last->tail != nullptr) {
+        last = ((TPairTypeList*)last->tail.get())->GetValue()->list.get();
     }
-    last->next.reset(after);
+    last->tail.reset(new TPairTypeList(after));
 }
 
 void VList::InsertBefore(VList* before)
 {
-    VList* last = before;
-    while (last->next != nullptr) {
-        last = last->next.get();
+    TPair* last = before->list.get();
+    while (last->tail != nullptr) {
+        last = ((TPairTypeList*)last->tail.get())->GetValue()->list.get();
     }
-    last->next.reset(this);;
+    last->tail.reset(new TPairTypeList(before));
 }
 
 size_t VList::ListLength()
 {
-    VList* last =  this;
-    size_t count = 0;
-    while (last != nullptr) {
-        last = last->next.get();
+    TPair* last = list.get();
+    size_t count = 1;
+    while (last->tail != nullptr) {
+        last = ((TPairTypeList*)last->tail.get())->GetValue()->list.get();
         count++;
     }
     return count;

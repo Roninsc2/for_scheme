@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 
-enum EListType {
+enum EPairType {
     LT_Int,//0
     LT_Double,//1
     LT_String,//2
@@ -11,141 +11,149 @@ enum EListType {
     LT_List
 };
 
-class TListType {
+class TPairType {
 public:
-    virtual ~TListType(){}
+    virtual ~TPairType(){}
 };
 
-typedef std::shared_ptr<TListType> TListTypePtr;
+typedef std::shared_ptr<TPairType> TPairTypePtr;
+
+struct TPair {
+  TPair(TPairTypePtr val1, TPairTypePtr val2): head(val1),
+      tail(val2)
+  {
+  }
+  TPairTypePtr head;
+  TPairTypePtr tail;
+};
 
 class VList {
 
 public:
-    VList(TListTypePtr  val): value(val){}
+    VList(TPairTypePtr  val): list(new TPair(val, nullptr)){}
     ~VList(){}
     void InsertAfter(VList* after);
     void InsertBefore(VList* before);
     void DeleteList();
     size_t ListLength();
 private:
-    TListTypePtr value;
-    std::shared_ptr<VList> next;
+    std::shared_ptr<TPair> list;
 };
 
 
-class TListTypeInt : public TListType {
+class TPairTypeInt : public TPairType {
 
 public:
-    TListTypeInt(int val): value(val) {}
+    TPairTypeInt(int val): value(val) {}
     int GetValue() {
         return value;
     }
-    EListType GetType() {
+    EPairType GetType() {
         return Type;
     }
 private:
-    EListType Type = LT_Int;
+    EPairType Type = LT_Int;
     int value;
 
 };
 
-class TListTypeList : public TListType {
+class TPairTypeList : public TPairType {
 
 public:
-    TListTypeList(VList* val): value(val) {}
-    ~TListTypeList(){
+    TPairTypeList(VList* val): value(val) {}
+    ~TPairTypeList(){
         delete value;
     }
 
     VList* GetValue() {
         return value;
     }
-    EListType GetType() {
+    EPairType GetType() {
         return Type;
     }
 private:
-    EListType Type = LT_List;
+    EPairType Type = LT_List;
     VList* value;
 
 };
 
-class TListTypeDouble : public TListType {
+class TPairTypeDouble : public TPairType {
 
 public:
-    TListTypeDouble(double val): value(val) {}
+    TPairTypeDouble(double val): value(val) {}
     double GetValue() {
         return value;
     }
-    EListType GetType() {
+    EPairType GetType() {
         return Type;
     }
 private:
-    EListType Type = LT_Double;
+    EPairType Type = LT_Double;
     double value;
 
 };
 
-class TListTypeChar : public TListType {
+class TPairTypeChar : public TPairType {
 
 public:
-    TListTypeChar(char val): value(val) {}
+    TPairTypeChar(char val): value(val) {}
     char GetValue() {
         return value;
     }
-    EListType GetType() {
+    EPairType GetType() {
         return Type;
     }
 private:
-    EListType Type = LT_Char;
+    EPairType Type = LT_Char;
     char value;
 
 };
 
-class TListTypeString : public TListType {
+class TPairTypeString : public TPairType {
 
 public:
-    TListTypeString(std::string val): value(val) {}
+    TPairTypeString(std::string val): value(val) {}
     std::string GetValue() {
         return value;
     }
-    EListType GetType() {
+    EPairType GetType() {
         return Type;
     }
 private:
-    EListType Type = LT_String;
+    EPairType Type = LT_String;
     std::string value;
 
 };
 
-class TListTypeSymbol : public TListType {
+class TPairTypeSymbol : public TPairType {
 
 public:
-    TListTypeSymbol(std::string val): value(val) {}
+    TPairTypeSymbol(std::string val): value(val) {}
     std::string GetValue() {
         return value;
     }
-    EListType GetType() {
+    EPairType GetType() {
         return Type;
     }
 private:
-    EListType Type = LT_Symbol;
+    EPairType Type = LT_Symbol;
     std::string value;
 
 };
 
-class TListTypeBool : public TListType {
+class TPairTypeBool : public TPairType {
 
 public:
-    TListTypeBool(bool val): value(val) {}
+    TPairTypeBool(bool val): value(val) {}
     bool GetValue() {
         return value;
     }
-    EListType GetType() {
+    EPairType GetType() {
         return Type;
     }
 
 private:
-    EListType Type = LT_Bool;
+    EPairType Type = LT_Bool;
     bool value;
 
 };

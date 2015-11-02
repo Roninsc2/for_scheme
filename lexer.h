@@ -15,9 +15,10 @@ enum States {
     State_Char, //6
     State_String, //7
     State_Symbol, //8
-    State_EOF, // 9
+    State_Point, //9
+    State_EOF, // 10
 };
-const size_t StatesCount = 10;
+const size_t StatesCount = 11;
 
 
 struct Token {

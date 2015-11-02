@@ -3,13 +3,29 @@
 
 TParser::TParser(const std::string fileName): Lexer(new TLexer(fileName))
 {
+    Parse();
+}
+
+void TParser::Parse() {
+
     while(1) {
         GetNextToken();
         switch (CurrentToken.state) {
         case State_EOF : return;
-        case State_Ident : root.push_back(ParseCallExprAST());
-        default:
+        case State_Ident : {
+            root.push_back(ParseCallExprAST());
             break;
+        }
+        case State_Lbkt: {
+            continue;
+            break;
+        }
+        case State_Rbkt: {
+            continue; //error
+            break;
+        }
+        default:
+            root.push_back(GetExprType());
         }
     }
 }
@@ -81,49 +97,49 @@ ExprAST* TParser::GetExprType() {
         return (new NumberDoubleAST(val));
     }
     default:
-        break;
+        break;//error
     }
 }
 
 VList* TParser::ParseList() {
     GetNextToken();
-    VList* list = GetListType();
+    VList* list = GetPairType();
     while (1) {
         GetNextToken();
         if (CurrentToken.state == State_Rbkt) {
             break;
         }
-        list->InsertAfter(GetListType());
+        list->InsertAfter(GetPairType());
     }
     return list;
 }
 
-VList* TParser::GetListType() {
+VList* TParser::GetPairType() {
     switch (CurrentToken.state) {
     case State_Lbkt : {
         return (ParseList());
     }
     case State_Ident:
-        return (new VList(TListTypePtr(new TListTypeSymbol(CurrentToken.value))));
+        return (new VList(TPairTypePtr(new TPairTypeSymbol(CurrentToken.value))));
     case State_Bool: {
         if (CurrentToken.value == "#t")  {
-            return (new VList(TListTypePtr(new TListTypeBool(true))));
+            return (new VList(TPairTypePtr(new TPairTypeBool(true))));
         } else {
-            return (new VList(TListTypePtr(new TListTypeBool(false))));
+            return (new VList(TPairTypePtr(new TPairTypeBool(false))));
         }
     }
     case State_String : {
         std::string val = CurrentToken.value;
         val.erase(0,1);
         val.erase(val.size()-1, val.size());
-        return (new VList(TListTypePtr(new TListTypeString(val))));
+        return (new VList(TPairTypePtr(new TPairTypeString(val))));
     }
     case State_Symbol : {
 
         std::string val = CurrentToken.value;
         if (val.length() != 1) {
             val.erase(0,1);
-            return (new VList(TListTypePtr(new TListTypeSymbol(val))));
+            return (new VList(TPairTypePtr(new TPairTypeSymbol(val))));
         } else {
             GetNextToken();
             if (CurrentToken.state == State_Lbkt) {
@@ -133,15 +149,18 @@ VList* TParser::GetListType() {
     }
     case State_Char : {
         char val  = CurrentToken.value[2];
-        return (new VList(TListTypePtr(new TListTypeChar(val))));
+        return (new VList(TPairTypePtr(new TPairTypeChar(val))));
     }
     case State_Int : {
         int val  = std::stoi(CurrentToken.value);
-        return (new VList(TListTypePtr(new TListTypeInt(val))));
+        return (new VList(TPairTypePtr(new TPairTypeInt(val))));
     }
     case State_Double : {
         double val  =  std::stod(CurrentToken.value);
-        return (new VList(TListTypePtr(new TListTypeDouble(val))));
+        return (new VList(TPairTypePtr(new TPairTypeDouble(val))));
+    }
+    default: {
+        //error
     }
     }
 }

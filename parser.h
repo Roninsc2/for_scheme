@@ -14,7 +14,8 @@ private:
     ExprAST* ParseCallExprAST();
     ExprAST* GetExprType();
     VList* ParseList();
-    VList* GetListType();
+    VList* GetPairType();
+    void Parse();
 
 private:
     std::shared_ptr< TLexer > Lexer;
