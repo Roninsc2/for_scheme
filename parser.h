@@ -14,7 +14,8 @@ private:
     ExprAST* ParseCallExprAST();
     ExprAST* GetExprType();
     VList* ParseList();
-    VList* GetPairType();
+    TPairType* GetPairType();
+    bool IsCorrectPair();
     void Parse();
 
 private:

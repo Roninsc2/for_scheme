@@ -2,13 +2,13 @@
 #include <memory>
 
 enum EPairType {
-    LT_Int,//0
-    LT_Double,//1
-    LT_String,//2
-    LT_Symbol,//3
-    LT_Char,//4
-    LT_Bool,//5
-    LT_List
+    PT_Int,//0
+    PT_Double,//1
+    PT_String,//2
+    PT_Symbol,//3
+    PT_Char,//4
+    PT_Bool,//5
+    PT_List,
 };
 
 class TPairType {
@@ -35,7 +35,9 @@ public:
     void InsertAfter(VList* after);
     void InsertBefore(VList* before);
     void DeleteList();
+    void ConvetToPair(TPairType* val);
     size_t ListLength();
+    bool isList = true;
 private:
     std::shared_ptr<TPair> list;
 };
@@ -52,7 +54,7 @@ public:
         return Type;
     }
 private:
-    EPairType Type = LT_Int;
+    EPairType Type = PT_Int;
     int value;
 
 };
@@ -72,7 +74,7 @@ public:
         return Type;
     }
 private:
-    EPairType Type = LT_List;
+    EPairType Type = PT_List;
     VList* value;
 
 };
@@ -88,7 +90,7 @@ public:
         return Type;
     }
 private:
-    EPairType Type = LT_Double;
+    EPairType Type = PT_Double;
     double value;
 
 };
@@ -104,7 +106,7 @@ public:
         return Type;
     }
 private:
-    EPairType Type = LT_Char;
+    EPairType Type = PT_Char;
     char value;
 
 };
@@ -120,7 +122,7 @@ public:
         return Type;
     }
 private:
-    EPairType Type = LT_String;
+    EPairType Type = PT_String;
     std::string value;
 
 };
@@ -136,7 +138,7 @@ public:
         return Type;
     }
 private:
-    EPairType Type = LT_Symbol;
+    EPairType Type = PT_Symbol;
     std::string value;
 
 };
@@ -153,7 +155,7 @@ public:
     }
 
 private:
-    EPairType Type = LT_Bool;
+    EPairType Type = PT_Bool;
     bool value;
 
 };

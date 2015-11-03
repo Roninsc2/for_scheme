@@ -82,6 +82,15 @@ public:
     std::shared_ptr<VList> value;
 };
 
+class PairAST : public ExprAST {
+
+public:
+    PairAST(TPair* val) : value(val) {}
+
+public:
+    std::shared_ptr<TPair> value;
+};
+
 
 class CallExprAST : public ExprAST {
   std::string Callee;
