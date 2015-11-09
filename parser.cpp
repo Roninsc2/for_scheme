@@ -80,7 +80,7 @@ ExprAST* TParser::GetExprType() {
         } else {
             GetNextToken();
             if (CurrentToken.state == State_Lbkt) {
-                return (new ListAST(ParseList()));
+                return ParseList();
             }
         }
     }
@@ -101,79 +101,79 @@ ExprAST* TParser::GetExprType() {
     }
 }
 
-VList* TParser::ParseList() {
+CallExprAST* TParser::ParseList() {
     GetNextToken();
+    std::vector< ExprAST* > expr;
     if (CurrentToken.state == State_Rbkt) {
-        return (new VList(TPairTypePtr(nullptr)));
+        return (new CallExprAST("list", expr));
     } else {
-        VList* list = new VList(TPairTypePtr(GetPairType()));
+        expr.push_back(GetExprTypeForList());
         while (1) {
             GetNextToken();
             if (CurrentToken.state == State_Rbkt) {
                 break;
             } else if (CurrentToken.state == State_Point) {
                 if (IsCorrectPair()) {
+                    expr.push_back(new SymbolAST("."));
                     GetNextToken();
-                    list->ConvetToPair(GetPairType());
-                    return list;
+                    expr.push_back(GetExprTypeForList());
+                    return (new CallExprAST("list", expr));
                 } else {
-                    //errror
+                    //error
                 }
 
+            } else {
+                expr.push_back(GetExprTypeForList());
             }
-            list->InsertAfter(new VList(TPairTypePtr(GetPairType())));
         }
-        return list;
+        return (new CallExprAST("list", expr));
     }
 }
 
-TPairType* TParser::GetPairType() {
+ExprAST* TParser::GetExprTypeForList() {
     switch (CurrentToken.state) {
     case State_Lbkt : {
-        return (new TPairTypeList(ParseList()));
+        return ParseList();
     }
     case State_Ident:
-        return (new TPairTypeSymbol(CurrentToken.value));
+        return (new SymbolAST(CurrentToken.value));
     case State_Bool: {
         if (CurrentToken.value == "#t")  {
-            return (new TPairTypeBool(true));
+            return (new BoolAST(true));
         } else {
-            return (new TPairTypeBool(false));
+            return (new BoolAST(false));
         }
     }
     case State_String : {
         std::string val = CurrentToken.value;
         val.erase(0,1);
         val.erase(val.size()-1, val.size());
-        return (new TPairTypeString(val));
+        return (new StringAST(val));
     }
     case State_Symbol : {
 
         std::string val = CurrentToken.value;
         if (val.length() != 1) {
             val.erase(0,1);
-            return (new TPairTypeSymbol(val));
+            return (new SymbolAST(val));
         } else {
             GetNextToken();
             if (CurrentToken.state == State_Lbkt) {
-                return (new TPairTypeList(ParseList()));
+                return ParseList();
             }
         }
     }
     case State_Char : {
         char val  = CurrentToken.value[2];
-        return (new TPairTypeChar(val));
+        return (new CharAST(val));
     }
     case State_Int : {
         int val  = std::stoi(CurrentToken.value);
-        return (new TPairTypeInt(val));
+        return (new NumberIntAST(val));
     }
     case State_Double : {
         double val  =  std::stod(CurrentToken.value);
-        return (new TPairTypeDouble(val));
-    }
-    case State_Rbkt : {
-        return (nullptr);
+        return (new NumberDoubleAST(val));
     }
     default: {
         break;

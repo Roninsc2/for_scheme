@@ -1,0 +1,5 @@
+ADD ( 2 list )
+ADD ( 4 1 )
+ADD ( 4 2 )
+ADD ( 4 3 )
+DOFUNC list

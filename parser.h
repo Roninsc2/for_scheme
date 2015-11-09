@@ -13,8 +13,8 @@ public:
 private:
     ExprAST* ParseCallExprAST();
     ExprAST* GetExprType();
-    VList* ParseList();
-    TPairType* GetPairType();
+    CallExprAST* ParseList();
+    ExprAST* GetExprTypeForList();
     bool IsCorrectPair();
     void Parse();
 
@@ -22,6 +22,7 @@ private:
     std::shared_ptr< TLexer > Lexer;
     Token CurrentToken;
     int i = 0;
+public:
     std::vector< ExprAST* > root;
 };
 

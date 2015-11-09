@@ -4,15 +4,31 @@
 #include <memory>
 #include <vlist.h>
 
+
+enum EAstType {
+    AT_Int,//0
+    AT_Double,//1
+    AT_String,//2
+    AT_Symbol,//3
+    AT_Char,//4
+    AT_Bool,//5
+    AT_List, //6
+    AT_Ident,//7
+    AT_Func
+};
+
 class ExprAST {
 public:
     virtual ~ExprAST(){}
+    EAstType Type;
 };
 
 class NumberIntAST : public ExprAST {
 
 public:
-    NumberIntAST(int val) : value(val) {}
+    NumberIntAST(int val) : value(val) {
+        Type = AT_Int;
+    }
 
 public:
     int value;
@@ -21,7 +37,9 @@ public:
 class NumberDoubleAST : public ExprAST {
 
 public:
-    NumberDoubleAST(double val) : value(val) {}
+    NumberDoubleAST(double val) : value(val) {
+        Type = AT_Double;
+    }
 
 public:
     double value;
@@ -31,16 +49,21 @@ public:
 class IdentAST : public ExprAST {
 
 public:
-    IdentAST(std::string val) : value(val) {}
+    IdentAST(std::string val) : name(val) {
+        Type = AT_Ident;
+    }
 
 public:
-    std::string value;
+    std::string name;
+    ExprAST* value;
 };
 
 class StringAST : public ExprAST {
 
 public:
-    StringAST(std::string val) : value(val) {}
+    StringAST(std::string val) : value(val) {
+        Type = AT_String;
+    }
 
 public:
     std::string value;
@@ -49,7 +72,9 @@ public:
 class CharAST : public ExprAST {
 
 public:
-    CharAST(char val) : value(val) {}
+    CharAST(char val) : value(val) {
+        Type = AT_Char;
+    }
 
 public:
     char value;
@@ -58,7 +83,9 @@ public:
 class BoolAST : public ExprAST {
 
 public:
-    BoolAST(bool val) : value(val) {}
+    BoolAST(bool val) : value(val) {
+        Type = AT_Bool;
+    }
 
 public:
     bool value;
@@ -67,7 +94,9 @@ public:
 class SymbolAST : public ExprAST {
 
 public:
-    SymbolAST(std::string val) : value(val) {}
+    SymbolAST(std::string val) : value(val) {
+        Type = AT_Symbol;
+    }
 
 public:
     std::string value;
@@ -76,29 +105,25 @@ public:
 class ListAST : public ExprAST {
 
 public:
-    ListAST(VList* val) : value(val) {}
+    ListAST(VList* val) : value(val) {
+        Type = AT_List;
+    }
 
 public:
     std::shared_ptr<VList> value;
 };
 
-class PairAST : public ExprAST {
-
-public:
-    PairAST(TPair* val) : value(val) {}
-
-public:
-    std::shared_ptr<TPair> value;
-};
-
-
 class CallExprAST : public ExprAST {
+public:
   std::string Callee;
   std::vector< ExprAST* > Args;
 
 public:
   CallExprAST(const std::string &callee, std::vector< ExprAST* > &args)
-    : Callee(callee), Args(args) {}
+    : Callee(callee), Args(args)
+  {
+      Type = AT_Func;
+  }
 };
 
 

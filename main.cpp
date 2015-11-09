@@ -1,14 +1,12 @@
 #include <iostream>
-#include "lexer.h"
-#include "vlist.h"
-#include "parser.h"
+#include "byte_code.h"
 
 using namespace std;
 
 int main()
 {
     try {
-        TParser pars("test.txt");
+        TByteCode pars("test.txt", "out.txt");
     } catch (LexerException* e) {
         std::cerr << e->what() << std::endl;
         delete e;

@@ -14,6 +14,10 @@ enum EPairType {
 class TPairType {
 public:
     virtual ~TPairType(){}
+    EPairType GetType() {
+        return Type;
+    }
+    EPairType Type;
 };
 
 typedef std::shared_ptr<TPairType> TPairTypePtr;
@@ -37,7 +41,6 @@ public:
     void DeleteList();
     void ConvetToPair(TPairType* val);
     size_t ListLength();
-    bool isList = true;
 private:
     std::shared_ptr<TPair> list;
 };
@@ -46,15 +49,13 @@ private:
 class TPairTypeInt : public TPairType {
 
 public:
-    TPairTypeInt(int val): value(val) {}
+    TPairTypeInt(int val): value(val) {
+        Type = PT_Int;
+    }
     int GetValue() {
         return value;
     }
-    EPairType GetType() {
-        return Type;
-    }
 private:
-    EPairType Type = PT_Int;
     int value;
 
 };
@@ -62,7 +63,9 @@ private:
 class TPairTypeList : public TPairType {
 
 public:
-    TPairTypeList(VList* val): value(val) {}
+    TPairTypeList(VList* val): value(val) {
+        Type = PT_List;
+    }
     ~TPairTypeList(){
         delete value;
     }
@@ -70,11 +73,7 @@ public:
     VList* GetValue() {
         return value;
     }
-    EPairType GetType() {
-        return Type;
-    }
 private:
-    EPairType Type = PT_List;
     VList* value;
 
 };
@@ -82,15 +81,13 @@ private:
 class TPairTypeDouble : public TPairType {
 
 public:
-    TPairTypeDouble(double val): value(val) {}
+    TPairTypeDouble(double val): value(val) {
+        Type = PT_Double;
+    }
     double GetValue() {
         return value;
     }
-    EPairType GetType() {
-        return Type;
-    }
 private:
-    EPairType Type = PT_Double;
     double value;
 
 };
@@ -98,15 +95,13 @@ private:
 class TPairTypeChar : public TPairType {
 
 public:
-    TPairTypeChar(char val): value(val) {}
+    TPairTypeChar(char val): value(val) {
+        Type = PT_Char;
+    }
     char GetValue() {
         return value;
     }
-    EPairType GetType() {
-        return Type;
-    }
 private:
-    EPairType Type = PT_Char;
     char value;
 
 };
@@ -114,15 +109,13 @@ private:
 class TPairTypeString : public TPairType {
 
 public:
-    TPairTypeString(std::string val): value(val) {}
+    TPairTypeString(std::string val): value(val) {
+        Type = PT_String;
+    }
     std::string GetValue() {
         return value;
     }
-    EPairType GetType() {
-        return Type;
-    }
 private:
-    EPairType Type = PT_String;
     std::string value;
 
 };
@@ -130,15 +123,13 @@ private:
 class TPairTypeSymbol : public TPairType {
 
 public:
-    TPairTypeSymbol(std::string val): value(val) {}
+    TPairTypeSymbol(std::string val): value(val) {
+        Type = PT_Symbol;
+    }
     std::string GetValue() {
         return value;
     }
-    EPairType GetType() {
-        return Type;
-    }
 private:
-    EPairType Type = PT_Symbol;
     std::string value;
 
 };
@@ -146,16 +137,13 @@ private:
 class TPairTypeBool : public TPairType {
 
 public:
-    TPairTypeBool(bool val): value(val) {}
+    TPairTypeBool(bool val): value(val) {
+        Type = PT_Bool;
+    }
     bool GetValue() {
         return value;
     }
-    EPairType GetType() {
-        return Type;
-    }
-
 private:
-    EPairType Type = PT_Bool;
     bool value;
 
 };
