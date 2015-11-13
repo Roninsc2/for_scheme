@@ -15,6 +15,7 @@ private:
     ExprAST* GetExprType();
     CallExprAST* ParseList();
     ExprAST* GetExprTypeForList();
+    CallExprAST* ConvertToPairAndList(std::vector< ExprAST* > expr);
     bool IsCorrectPair();
     void Parse();
 

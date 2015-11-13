@@ -112,12 +112,9 @@ CallExprAST* TParser::ParseList() {
             GetNextToken();
             if (CurrentToken.state == State_Rbkt) {
                 break;
-            } else if (CurrentToken.state == State_Point) {
+            } else if (CurrentToken.state == State_Point && expr.size()) {
                 if (IsCorrectPair()) {
-                    expr.push_back(new SymbolAST("."));
-                    GetNextToken();
-                    expr.push_back(GetExprTypeForList());
-                    return (new CallExprAST("list", expr));
+                    return ConvertToPairAndList(expr);
                 } else {
                     //error
                 }
@@ -180,6 +177,22 @@ ExprAST* TParser::GetExprTypeForList() {
         //error
     }
     }
+}
+
+CallExprAST* TParser::ConvertToPairAndList(std::vector< ExprAST *> expr) {
+    ExprAST* firstInCons = expr[expr.size()-1];
+    expr.pop_back();
+    CallExprAST* list = new CallExprAST("list", expr);
+    std::vector <ExprAST*> forCons;
+    forCons.push_back(firstInCons);
+    GetNextToken();
+    forCons.push_back(GetExprTypeForList());
+    CallExprAST* cons = new CallExprAST("cons", forCons);
+    std::vector<ExprAST*> forAppend;
+    forAppend.push_back(list);
+    forAppend.push_back(cons);
+    CallExprAST* append = new CallExprAST("append", forAppend);
+    return append;
 }
 
 bool TParser::IsCorrectPair() {

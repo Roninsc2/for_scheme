@@ -29,7 +29,6 @@ void TByteCode::GetFuncByteCode(CallExprAST* func)
 {
     std::string name = func->Callee;
     for (size_t i = 0; i < func->Args.size(); i++) {
-        fout << "ADD ";
         GetExprValue(func->Args[i]);
     }
     fout << "DOFUNC " << name << std::endl;
@@ -37,28 +36,28 @@ void TByteCode::GetFuncByteCode(CallExprAST* func)
 
 void TByteCode::GetExprValue(ExprAST *expr) {
     switch (expr->Type) {
-    case AT_Bool: {
-        fout << "( 0 " << ((BoolAST*)expr)->value << " )" << std::endl;;
-        return;
-    }
-    case AT_String : {
-        fout << "( 1 " << ((StringAST*)expr)->value << " )" << std::endl;;
-        return;
-    }
-    case AT_Symbol : {
-        fout << "( 2 "<< ((SymbolAST*)expr)->value << " )" << std::endl;;
-        return;
-    }
-    case AT_Char : {
-        fout << "( 3 " << ((CharAST*)expr)->value << " )" << std::endl;;
-        return;
-    }
-    case AT_Int : {
-        fout << "( 4 " << ((NumberIntAST*)expr)->value << " )" << std::endl;;
+    case AT_Int: {
+        fout << "ADD 0 " << ((NumberIntAST*)expr)->value << std::endl;;
         return;
     }
     case AT_Double : {
-        fout  << "( 5 " <<((NumberDoubleAST*)expr)->value << " )" << std::endl;;
+        fout << "ADD 1 " << ((NumberDoubleAST*)expr)->value  << std::endl;;
+        return;
+    }
+    case AT_String : {
+        fout << "ADD 2 "<< ((StringAST*)expr)->value  << std::endl;;
+        return;
+    }
+    case AT_Symbol : {
+        fout << "ADD 3 " << ((SymbolAST*)expr)->value  << std::endl;;
+        return;
+    }
+    case AT_Char : {
+        fout << "ADD 4 " << ((CharAST*)expr)->value  << std::endl;;
+        return;
+    }
+    case AT_Bool : {
+        fout  << "ADD 5 " <<((BoolAST*)expr)->value  << std::endl;;
         return;
     }
     case AT_Ident : {
