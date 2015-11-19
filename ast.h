@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <vlist.h>
+
 
 
 enum EAstType {
@@ -52,10 +52,8 @@ public:
     IdentAST(std::string val) : name(val) {
         Type = AT_Ident;
     }
-
 public:
     std::string name;
-    ExprAST* value;
 };
 
 class StringAST : public ExprAST {
@@ -102,17 +100,6 @@ public:
     std::string value;
 };
 
-class ListAST : public ExprAST {
-
-public:
-    ListAST(VList* val) : value(val) {
-        Type = AT_List;
-    }
-
-public:
-    std::shared_ptr<VList> value;
-};
-
 class CallExprAST : public ExprAST {
 public:
   std::string Callee;
@@ -128,20 +115,25 @@ public:
 
 
 class PrototypeAST {
-  std::string Name;
-  std::vector< std::shared_ptr<ExprAST> > Args;
-
 public:
-  PrototypeAST(const std::string &name, const std::vector<std::shared_ptr<ExprAST> > &args)
-    : Name(name), Args(args) {}
+  PrototypeAST(const std::string &name, const std::vector< ExprAST* > &args)
+    : Name(name), Args(args)
+  {
+  }
+public:
+  std::string Name;
+  std::vector< ExprAST* > Args;
 };
 
 
 class FunctionAST {
-  std::shared_ptr< PrototypeAST >Proto;
-  std::vector< std::shared_ptr<ExprAST> >Body;
-
 public:
-  FunctionAST(std::shared_ptr< PrototypeAST > proto,  std::vector< std::shared_ptr<ExprAST> > body)
-    : Proto(proto), Body(body) {}
+  FunctionAST(PrototypeAST* proto,  std::vector< ExprAST* > body)
+    : Proto(proto), Body(body)
+  {
+  }
+public:
+  std::shared_ptr< PrototypeAST >Proto;
+  std::vector< ExprAST* >Body;
+
 };

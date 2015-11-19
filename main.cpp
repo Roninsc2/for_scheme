@@ -7,7 +7,7 @@ int main()
 {
     try {
         TByteCode pars("test.txt", "out.txt");
-    } catch (LexerException* e) {
+    } catch (Exception* e) {
         std::cerr << e->what() << std::endl;
         delete e;
     }

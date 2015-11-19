@@ -1,5 +1,8 @@
-DOFUNC list
-ADD 0 2
-ADD 0 1
-DOFUNC cons
-DOFUNC append
+DEFINE a b c 
+ADD 0 7 b
+ADD 0 7 c
+DOFUNC 0 +
+ENDDEFINE 
+ADD 0 0 3
+ADD 0 0 4
+DOFUNC 0 a

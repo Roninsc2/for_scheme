@@ -15,6 +15,7 @@ private:
     ExprAST* GetExprType();
     CallExprAST* ParseList();
     ExprAST* GetExprTypeForList();
+    FunctionAST* ParseDefineFunc();
     CallExprAST* ConvertToPairAndList(std::vector< ExprAST* > expr);
     bool IsCorrectPair();
     void Parse();
@@ -25,5 +26,5 @@ private:
     int i = 0;
 public:
     std::vector< ExprAST* > root;
+    std::vector< FunctionAST* > define;
 };
-

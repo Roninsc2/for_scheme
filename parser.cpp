@@ -13,7 +13,12 @@ void TParser::Parse() {
         switch (CurrentToken.state) {
         case State_EOF : return;
         case State_Ident : {
-            root.push_back(ParseCallExprAST());
+            if (CurrentToken.value == "define" && Lexer->Tokens[i].state == State_Lbkt) {
+                GetNextToken();
+                define.push_back(ParseDefineFunc());
+            } else {
+                root.push_back(ParseCallExprAST());
+            }
             break;
         }
         case State_Lbkt: {
@@ -21,7 +26,7 @@ void TParser::Parse() {
             break;
         }
         case State_Rbkt: {
-            continue; //error
+            throw new ParserExceptionIncorrectToken("incorrect token: ) ");
             break;
         }
         default:
@@ -56,8 +61,9 @@ ExprAST* TParser::GetExprType() {
         GetNextToken();
         return (ParseCallExprAST());
     }
-    case State_Ident:
+    case State_Ident: {
         return (new IdentAST(CurrentToken.value));
+    }
     case State_Bool: {
         if (CurrentToken.value == "#t")  {
             return (new BoolAST(true));
@@ -97,6 +103,7 @@ ExprAST* TParser::GetExprType() {
         return (new NumberDoubleAST(val));
     }
     default:
+        throw new ParserExceptionIncorrectToken("cannot identify token type");
         break;//error
     }
 }
@@ -116,7 +123,7 @@ CallExprAST* TParser::ParseList() {
                 if (IsCorrectPair()) {
                     return ConvertToPairAndList(expr);
                 } else {
-                    //error
+                    throw new ParserExceptionIncorrectToken("incorrect pair");
                 }
 
             } else {
@@ -173,10 +180,43 @@ ExprAST* TParser::GetExprTypeForList() {
         return (new NumberDoubleAST(val));
     }
     default: {
+        throw new ParserExceptionIncorrectToken("cannot identify token type");
         break;
+    }
+    }
+}
+
+FunctionAST* TParser::ParseDefineFunc()
+{
+    GetNextToken();
+    std::string name;
+    std::vector< ExprAST* > args;
+    if (CurrentToken.state != State_Ident) {
         //error
+    } else {
+        name = CurrentToken.value;
     }
+    while(true) {
+        GetNextToken();
+        if (CurrentToken.state == State_Rbkt) {
+            break;
+        }
+        if (CurrentToken.state == State_Ident) {
+            args.push_back(new IdentAST(CurrentToken.value));
+        } else {
+            //error
+        }
     }
+    PrototypeAST* proto = new PrototypeAST(name, args);
+    std::vector<ExprAST*> body;
+    while(true) {
+        GetNextToken();
+        if (CurrentToken.state == State_Rbkt) {
+            break;
+        }
+        body.push_back(GetExprType());
+    }
+    return (new FunctionAST(proto, body));
 }
 
 CallExprAST* TParser::ConvertToPairAndList(std::vector< ExprAST *> expr) {

@@ -50,7 +50,7 @@ void TLexer::IsCorrectToken(char c, std::string& value, States state) {
         FindToken(state, value);
     } else {
         value += c;
-        throw new ExceptionIncorrectChar(value, PosLine, PosColumn);
+        throw new ExceptionLexerIncorrectChar(value, PosLine, PosColumn);
     }
 }
 
@@ -136,7 +136,7 @@ void TLexer::ReadString(std::string &value) {
     bool IsSpecialForString = false;
     while(true) {
         if (FileEOF()) {
-            throw new ExceptionEOF(value, PosLine, PosColumn);
+            throw new ExceptionLexerEOF(value, PosLine, PosColumn);
             break;
         }
         char c = GetChar();
@@ -151,7 +151,7 @@ void TLexer::ReadString(std::string &value) {
             IsCorrectToken(c, value, State_String);
             break;
         } else if (IsSpecialForString) {
-            throw new ExceptionIncorrectChar(value, PosLine, PosColumn);
+            throw new ExceptionLexerIncorrectChar(value, PosLine, PosColumn);
             break;
         }
     }
@@ -160,7 +160,7 @@ void TLexer::ReadString(std::string &value) {
 void TLexer::ReadSymbol(std::string &value) {
     while (true) {
         if (FileEOF()) {
-            throw new ExceptionEOF(value, PosLine, PosColumn);
+            throw new ExceptionLexerEOF(value, PosLine, PosColumn);
             break;
         }
         char c = GetChar();
@@ -185,14 +185,14 @@ void TLexer::ReadSharp(std::string &value) {
         c = GetChar();
         IsCorrectToken(c, value, State_Bool);
     } else {
-        throw new ExceptionIncorrectChar(value, PosLine, PosColumn);
+        throw new ExceptionLexerIncorrectChar(value, PosLine, PosColumn);
     }
 }
 
 void TLexer::ReadIdent(std::string &value) {
     while (true) {
         if (FileEOF()) {
-            throw new ExceptionEOF(value, PosLine, PosColumn);
+            throw new ExceptionLexerEOF(value, PosLine, PosColumn);
             break;
         }
         char c = GetChar();
@@ -209,7 +209,7 @@ void TLexer::ReadNumber(std::string &value) {
     States state = State_Int;
     while (true) {
         if (FileEOF()) {
-            throw new ExceptionEOF(value, PosLine, PosColumn);
+            throw new ExceptionLexerEOF(value, PosLine, PosColumn);
             break;
         }
         char c = GetChar();
@@ -226,7 +226,7 @@ void TLexer::ReadNumber(std::string &value) {
                 value += c_temp;
                 value += c_temp2;
             } else {
-                throw new ExceptionIncorrectChar(value, PosLine, PosColumn);
+                throw new ExceptionLexerIncorrectChar(value, PosLine, PosColumn);
                 break;
             }
         } else {
