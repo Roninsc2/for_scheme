@@ -14,7 +14,12 @@ enum EAstType {
     AT_Bool,//5
     AT_List, //6
     AT_Ident,//7
-    AT_Func
+    AT_Func,//8
+    SAT_IfElse,
+    SAT_Cond,
+    SAT_Begin,
+    SAT_Lambda,
+    SAT_Define
 };
 
 class ExprAST {
@@ -114,23 +119,77 @@ public:
 };
 
 
+class IfElseExprAST : public ExprAST {
+public:
+    std::shared_ptr<ExprAST> test;
+    std::shared_ptr<ExprAST> first;
+    std::shared_ptr<ExprAST> second;
+
+public:
+  IfElseExprAST(ExprAST* TEST, ExprAST* First, ExprAST* Second)
+    : test(TEST),first(First), second(Second)
+  {
+      Type = SAT_IfElse;
+  }
+};
+
+class CondExprAST : public ExprAST {
+public:
+    std::vector<ExprAST*> Tests;
+    std::vector<ExprAST*> Args;
+
+public:
+  CondExprAST(std::vector<ExprAST*> expr, std::vector<ExprAST*> test)
+    : Tests(test), Args(expr)
+  {
+      Type = SAT_Cond;
+  }
+};
+
+class BeginExprAST : public ExprAST {
+public:
+    std::vector<ExprAST*> Args;
+
+public:
+  BeginExprAST(std::vector<ExprAST*> exprs)
+    : Args(exprs)
+  {
+      Type = SAT_Begin;
+  }
+};
+
+class LambdaExprAST : public ExprAST {
+public:
+    std::vector<IdentAST*> Idents;
+    std::vector<ExprAST*> Agrs;
+
+public:
+  LambdaExprAST(std::vector<IdentAST*> idents, std::vector<ExprAST*> args)
+    : Idents(idents), Agrs(args)
+  {
+      Type = SAT_Lambda;
+  }
+};
+
+
 class PrototypeAST {
 public:
-  PrototypeAST(const std::string &name, const std::vector< ExprAST* > &args)
+  PrototypeAST(const std::string &name, const std::vector< IdentAST* > &args)
     : Name(name), Args(args)
   {
   }
 public:
   std::string Name;
-  std::vector< ExprAST* > Args;
+  std::vector< IdentAST* > Args;
 };
 
 
-class FunctionAST {
+class FunctionAST: public ExprAST {
 public:
   FunctionAST(PrototypeAST* proto,  std::vector< ExprAST* > body)
     : Proto(proto), Body(body)
   {
+      Type = SAT_Define;
   }
 public:
   std::shared_ptr< PrototypeAST >Proto;

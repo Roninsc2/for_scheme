@@ -3,6 +3,11 @@
 
 TParser::TParser(const std::string fileName): Lexer(new TLexer(fileName))
 {
+    stdFunc.insert(std::make_pair("define", &ParseDefineFunc));
+    stdFunc.insert(std::make_pair("begin", &ParseBeginFunc));
+    stdFunc.insert(std::make_pair("lambda", &ParseLambdaFunc));
+    stdFunc.insert(std::make_pair("if", &ParseIfElseFunc));
+    stdFunc.insert(std::make_pair("cond", &ParseCondFunc));
     Parse();
 }
 
@@ -13,9 +18,8 @@ void TParser::Parse() {
         switch (CurrentToken.state) {
         case State_EOF : return;
         case State_Ident : {
-            if (CurrentToken.value == "define" && Lexer->Tokens[i].state == State_Lbkt) {
-                GetNextToken();
-                define.push_back(ParseDefineFunc());
+            if (stdFunc.count(CurrentToken.value)) {
+                root.push_back((this->*(stdFunc.at(CurrentToken.value)))());
             } else {
                 root.push_back(ParseCallExprAST());
             }
@@ -43,6 +47,9 @@ void TParser::GetNextToken() {
 ExprAST* TParser::ParseCallExprAST()
 {
     std::string Name = CurrentToken.value;
+    if (stdFunc.count(CurrentToken.value)) {
+        return (this->*(stdFunc.at(CurrentToken.value)))();
+    }
     std::vector< ExprAST* > Args;
 
     while(1) {
@@ -186,11 +193,15 @@ ExprAST* TParser::GetExprTypeForList() {
     }
 }
 
-FunctionAST* TParser::ParseDefineFunc()
+ExprAST* TParser::ParseDefineFunc()
 {
     GetNextToken();
+    if (CurrentToken.state != State_Lbkt) {
+        return (ParseCallExprAST());
+    }
+    GetNextToken();
     std::string name;
-    std::vector< ExprAST* > args;
+    std::vector< IdentAST* > args;
     if (CurrentToken.state != State_Ident) {
         //error
     } else {
@@ -217,6 +228,46 @@ FunctionAST* TParser::ParseDefineFunc()
         body.push_back(GetExprType());
     }
     return (new FunctionAST(proto, body));
+}
+
+ExprAST* TParser::ParseIfElseFunc()
+{
+    GetNextToken();
+    if (CurrentToken.state == State_Rbkt) {
+        throw new ParserExceptionIncorrectToken("if incoorect");
+    }
+    ExprAST* test = GetExprType();
+    GetNextToken();
+    if (CurrentToken.state == State_Rbkt) {
+        throw new ParserExceptionIncorrectToken("if incoorect");
+    }
+    ExprAST* first = GetExprType();
+    GetNextToken();
+    if (CurrentToken.state == State_Rbkt) {
+        return (new IfElseExprAST(test, first, nullptr));
+    } else {
+        ExprAST* second = GetExprType();
+        GetNextToken();
+        if (CurrentToken.state != State_Rbkt) {
+            throw new ParserExceptionIncorrectToken("if incoorect");
+        }
+        return new IfElseExprAST(test, first, second);
+    }
+}
+
+ExprAST* TParser::ParseLambdaFunc()
+{
+
+}
+
+ExprAST* TParser::ParseCondFunc()
+{
+
+}
+
+ExprAST* TParser::ParseBeginFunc()
+{
+
 }
 
 CallExprAST* TParser::ConvertToPairAndList(std::vector< ExprAST *> expr) {

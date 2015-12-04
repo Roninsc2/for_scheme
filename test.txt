@@ -1,2 +1,5 @@
-(define (a b c) (+ b c))
-(a 3 4)
+(define (aa b c)
+  (if (= b c)
+      (+ b c)
+      (aa (- b 1) c)))
+(aa 1 2)

@@ -6,7 +6,7 @@ using namespace std;
 int main()
 {
     try {
-        TByteCode pars("test.txt", "out.txt");
+        TByteCode pars("test.txt", "out.bin");
     } catch (Exception* e) {
         std::cerr << e->what() << std::endl;
         delete e;

@@ -2,6 +2,7 @@
 #include <memory>
 #include "lexer.h"
 #include "ast.h"
+#include <map>
 
 class TParser {
 
@@ -15,16 +16,20 @@ private:
     ExprAST* GetExprType();
     CallExprAST* ParseList();
     ExprAST* GetExprTypeForList();
-    FunctionAST* ParseDefineFunc();
+    ExprAST* ParseDefineFunc();
+    ExprAST* ParseIfElseFunc();
+    ExprAST* ParseLambdaFunc();
+    ExprAST* ParseCondFunc();
+    ExprAST* ParseBeginFunc();
     CallExprAST* ConvertToPairAndList(std::vector< ExprAST* > expr);
     bool IsCorrectPair();
     void Parse();
 
 private:
     std::shared_ptr< TLexer > Lexer;
+    std::map<std::string, ExprAST*(TParser::*)()> stdFunc;
     Token CurrentToken;
     int i = 0;
 public:
     std::vector< ExprAST* > root;
-    std::vector< FunctionAST* > define;
 };
