@@ -21,7 +21,7 @@ void TByteCode::GetByteCode()
             GetExprValue(Parser->root[i]);
         } else {
             FunctionAST* currentDefine = (FunctionAST*)Parser->root[i];
-            fout << "6 " << currentDefine ->Proto->Name << " ";
+            SaveMany(fout, (char)CMD_DEFSTART, currentDefine ->Proto->Name);
             for (size_t j = 0; j < currentDefine ->Proto->Args.size(); j++) {
                 fout << currentDefine ->Proto->Args[j]->name << " ";
             }
@@ -29,7 +29,7 @@ void TByteCode::GetByteCode()
             for (size_t j = 0; j < currentDefine ->Body.size(); j++) {
                 GetDefineByteCode(currentDefine ->Body[j], currentDefine ->Proto->Name);
             }
-            fout << "7 " << std::endl;
+            SaveMany(fout, (char)CMD_ENDDEF);
         }
     }
 }
@@ -37,41 +37,41 @@ void TByteCode::GetByteCode()
 void TByteCode::GetFuncByteCode(CallExprAST* func)
 {
     std::string name = func->Callee;
-    fout << "3 " << name << std::endl;
+    SaveMany(fout, (char)CMD_CALL, name);
     for (size_t i = 0; i < func->Args.size(); i++) {
         GetExprValue(func->Args[i]);
     }
-    fout << "5 " << std::endl;
+    SaveMany(fout, (char)CMD_ENDCALL);
 }
 
 void TByteCode::GetTaliCallByteCode(CallExprAST *func)
 {
     std::string name = func->Callee;
-    fout << "4 " << name << std::endl;
+    SaveMany(fout, (char)CMD_TAILCALL, name);
     for (size_t i = 0; i < func->Args.size(); i++) {
         GetExprValue(func->Args[i]);
     }
-    fout << "5 " << std::endl;
+    SaveMany(fout, (char)CMD_ENDCALL);
 }
 
 void TByteCode::GetIfElseByteCode(IfElseExprAST *expr, std::string name)
 {
     if (!name.size()) {
-        fout << "8 " << std::endl;
+        SaveMany(fout, (char)CMD_IFELSE);
         GetExprValue(expr->test.get());
         GetExprValue(expr->first.get());
         if (expr->second) {
             GetExprValue(expr->second.get());
         }
-        fout << "5 " << std::endl;
+        SaveMany(fout, (char)CMD_ENDCALL);
     } else {
-        fout << "8 " << std::endl;
+        SaveMany(fout, (char)CMD_IFELSE);
         GetDefineByteCode(expr->test.get(), name);
         GetDefineByteCode(expr->first.get(), name);
         if (expr->second) {
             GetDefineByteCode(expr->second.get(), name);
         }
-        fout << "5 " << std::endl;
+        SaveMany(fout, (char)CMD_ENDCALL);
     }
 }
 
@@ -105,27 +105,27 @@ void TByteCode::Allocator(ExprAST* expr)
     }
     switch (expr->Type) {
     case AT_Int: {
-        fout << "0 0 " << ((NumberIntAST*)expr)->value << std::endl;;
+        SaveMany(fout, (char)CMD_AllOC, (char)T_INT, ((NumberIntAST*)expr)->value);
         return;
     }
     case AT_Double : {
-        fout << "0 1 " << ((NumberDoubleAST*)expr)->value  << std::endl;;
+        SaveMany(fout, (char)CMD_AllOC, (char)T_DOUBLE,((NumberDoubleAST*)expr)->value);
         return;
     }
     case AT_String : {
-        fout << "0 2 " << ((StringAST*)expr)->value.length() << " " << ((StringAST*)expr)->value  << std::endl;;
+        SaveMany(fout, (char)CMD_AllOC, (char)T_STRING, ((StringAST*)expr)->value.length(), ((StringAST*)expr)->value);
         return;
     }
     case AT_Symbol : {
-        fout << "0 3 " << ((StringAST*)expr)->value.length() << " " << ((SymbolAST*)expr)->value  << std::endl;;
+        SaveMany(fout, (char)CMD_AllOC, (char)T_SYMBOL, ((SymbolAST*)expr)->value.length(), ((SymbolAST*)expr)->value);
         return;
     }
     case AT_Char : {
-        fout << "0 4 " << ((CharAST*)expr)->value  << std::endl;;
+        SaveMany(fout, (char)CMD_AllOC, (char)T_CHAR, ((CharAST*)expr)->value);
         return;
     }
     case AT_Bool : {
-        fout  << "0 5 " <<((BoolAST*)expr)->value  << std::endl;;
+        SaveMany(fout, (char)CMD_AllOC, (char)T_BOOL, ((BoolAST*)expr)->value);
         return;
     }
     case SAT_IfElse: {
@@ -157,32 +157,8 @@ void TByteCode::Allocator(ExprAST* expr)
 
 void TByteCode::GetExprValue(ExprAST *expr) {
     switch (expr->Type) {
-    case AT_Int: {
-        fout << "1 " << GetAllocatorValue(expr) << std::endl;;
-        return;
-    }
-    case AT_Double : {
-        fout << "1 " << GetAllocatorValue(expr)  << std::endl;;
-        return;
-    }
-    case AT_String : {
-        fout << "1 "<< GetAllocatorValue(expr)  << std::endl;;
-        return;
-    }
-    case AT_Symbol : {
-        fout << "1 " << GetAllocatorValue(expr)  << std::endl;;
-        return;
-    }
-    case AT_Char : {
-        fout << "1 " << GetAllocatorValue(expr)  << std::endl;;
-        return;
-    }
-    case AT_Bool : {
-        fout  << "1 " << GetAllocatorValue(expr)  << std::endl;;
-        return;
-    }
     case AT_Ident : {
-        fout << "2 " << ((IdentAST*)expr)->name << std::endl;
+        SaveMany(fout, (char)CMD_PUSHIDENT, ((IdentAST*)expr)->name);
         return;
     }
     case SAT_IfElse: {
@@ -194,8 +170,8 @@ void TByteCode::GetExprValue(ExprAST *expr) {
         return;
     }
     default: {
-        break;
-        throw new ParserExceptionIncorrectToken("cannot identify token type");
+        SaveMany(fout, (char)CMD_PUSH, GetAllocatorValue(expr));
+        return;
     }
     }
 }

@@ -15,5 +15,7 @@ HEADERS += \
     parser.h \
     ast.h \
     byte_code.h \
-    texeption.h
+    texeption.h \
+    saveload.h \
+    types.h
 

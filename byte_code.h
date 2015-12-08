@@ -2,6 +2,7 @@
 
 #include "parser.h"
 #include <unordered_map>
+#include <saveload.h>
 
 
 /* command
@@ -30,6 +31,26 @@ public:
     size_t GetAllocatorValue(ExprAST* expr);
     bool IsInAllocatorValue(ExprAST* epxr);
 private:
+    enum Command {
+        CMD_AllOC = '0',
+        CMD_PUSH = '1',
+        CMD_PUSHIDENT = '2',
+        CMD_CALL = '3',
+        CMD_TAILCALL = '4',
+        CMD_ENDCALL = '5',
+        CMD_DEFSTART = '6',
+        CMD_ENDDEF = '7',
+        CMD_IFELSE = '8'
+    };
+
+    enum Type {
+        T_INT = '0',
+        T_DOUBLE = '1',
+        T_STRING = '2',
+        T_SYMBOL = '3',
+        T_CHAR = '4',
+        T_BOOL = '5'
+    };
     std::shared_ptr< TParser > Parser;
     std::unordered_map<ExprAST*, size_t> allocatorValue;
     std::ofstream fout;
