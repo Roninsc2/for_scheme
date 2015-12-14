@@ -35,21 +35,21 @@ private:
         CMD_AllOC = '0',
         CMD_PUSH = '1',
         CMD_PUSHIDENT = '2',
-        CMD_CALL = '3',
-        CMD_TAILCALL = '4',
-        CMD_ENDCALL = '5',
+        CMD_IFELSE = '3',
+        CMD_CALL = '4',
+        CMD_TAILCALL = '5',
         CMD_DEFSTART = '6',
-        CMD_ENDDEF = '7',
-        CMD_IFELSE = '8'
+        CMD_ENDCALL = '7',
+        CMD_ENDDEF = '8',
     };
 
-    enum Type {
-        T_INT = '0',
-        T_DOUBLE = '1',
-        T_STRING = '2',
-        T_SYMBOL = '3',
-        T_CHAR = '4',
-        T_BOOL = '5'
+    enum ValueType {
+        VT_INT = '0',
+        VT_DOUBLE = '1',
+        VT_STRING = '2',
+        VT_SYMBOL = '3',
+        VT_CHAR = '4',
+        VT_BOOL = '5'
     };
     std::shared_ptr< TParser > Parser;
     std::unordered_map<ExprAST*, size_t> allocatorValue;

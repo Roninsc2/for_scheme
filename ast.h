@@ -12,9 +12,8 @@ enum EAstType {
     AT_Symbol,//3
     AT_Char,//4
     AT_Bool,//5
-    AT_List, //6
-    AT_Ident,//7
-    AT_Func,//8
+    AT_Ident,//6
+    AT_Func,//7
     SAT_IfElse,
     SAT_Cond,
     SAT_Begin,

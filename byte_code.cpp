@@ -21,13 +21,12 @@ void TByteCode::GetByteCode()
             GetExprValue(Parser->root[i]);
         } else {
             FunctionAST* currentDefine = (FunctionAST*)Parser->root[i];
-            SaveMany(fout, (char)CMD_DEFSTART, currentDefine ->Proto->Name);
-            for (size_t j = 0; j < currentDefine ->Proto->Args.size(); j++) {
-                fout << currentDefine ->Proto->Args[j]->name << " ";
+            SaveMany(fout, (char)CMD_DEFSTART, currentDefine->Proto->Name, currentDefine->Proto->Args.size());
+            for (size_t j = 0; j < currentDefine->Proto->Args.size(); j++) {
+                SaveMany(fout, currentDefine->Proto->Args[j]->name);
             }
-            fout << std::endl;
-            for (size_t j = 0; j < currentDefine ->Body.size(); j++) {
-                GetDefineByteCode(currentDefine ->Body[j], currentDefine ->Proto->Name);
+            for (size_t j = 0; j < currentDefine->Body.size(); j++) {
+                GetDefineByteCode(currentDefine->Body[j], currentDefine ->Proto->Name);
             }
             SaveMany(fout, (char)CMD_ENDDEF);
         }
@@ -98,34 +97,35 @@ void TByteCode::GetDefineByteCode(ExprAST* expr, std::string name)
 
 void TByteCode::Allocator(ExprAST* expr)
 {
+    if (IsInAllocatorValue(expr)) {
+        return;
+    }
     if (expr->Type != AT_Func && expr->Type != AT_Ident && expr->Type != SAT_Define && expr->Type != SAT_IfElse && !IsInAllocatorValue(expr)){
         allocatorValue.insert(std::make_pair(expr, allocatorValue.size()));
-    } else if (IsInAllocatorValue(expr)) {
-        return;
     }
     switch (expr->Type) {
     case AT_Int: {
-        SaveMany(fout, (char)CMD_AllOC, (char)T_INT, ((NumberIntAST*)expr)->value);
+        SaveMany(fout, (char)CMD_AllOC, (char)VT_INT, ((NumberIntAST*)expr)->value);
         return;
     }
     case AT_Double : {
-        SaveMany(fout, (char)CMD_AllOC, (char)T_DOUBLE,((NumberDoubleAST*)expr)->value);
+        SaveMany(fout, (char)CMD_AllOC, (char)VT_DOUBLE,((NumberDoubleAST*)expr)->value);
         return;
     }
     case AT_String : {
-        SaveMany(fout, (char)CMD_AllOC, (char)T_STRING, ((StringAST*)expr)->value.length(), ((StringAST*)expr)->value);
+        SaveMany(fout, (char)CMD_AllOC, (char)VT_STRING, ((StringAST*)expr)->value);
         return;
     }
     case AT_Symbol : {
-        SaveMany(fout, (char)CMD_AllOC, (char)T_SYMBOL, ((SymbolAST*)expr)->value.length(), ((SymbolAST*)expr)->value);
+        SaveMany(fout, (char)CMD_AllOC, (char)VT_SYMBOL, ((SymbolAST*)expr)->value);
         return;
     }
     case AT_Char : {
-        SaveMany(fout, (char)CMD_AllOC, (char)T_CHAR, ((CharAST*)expr)->value);
+        SaveMany(fout, (char)CMD_AllOC, (char)VT_CHAR, ((CharAST*)expr)->value);
         return;
     }
     case AT_Bool : {
-        SaveMany(fout, (char)CMD_AllOC, (char)T_BOOL, ((BoolAST*)expr)->value);
+        SaveMany(fout, (char)CMD_AllOC, (char)VT_BOOL, ((BoolAST*)expr)->value);
         return;
     }
     case SAT_IfElse: {
@@ -144,7 +144,7 @@ void TByteCode::Allocator(ExprAST* expr)
     }
     case SAT_Define: {
         for (size_t i = 0; i < ((FunctionAST*)expr)->Body.size(); i++) {
-             Allocator(((FunctionAST*)expr)->Body[i]);
+            Allocator(((FunctionAST*)expr)->Body[i]);
         }
         return;
     }
