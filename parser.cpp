@@ -3,11 +3,11 @@
 
 TParser::TParser(const std::string fileName): Lexer(new TLexer(fileName))
 {
-    stdFunc.insert(std::make_pair("define", &ParseDefineFunc));
-    stdFunc.insert(std::make_pair("begin", &ParseBeginFunc));
-    stdFunc.insert(std::make_pair("lambda", &ParseLambdaFunc));
-    stdFunc.insert(std::make_pair("if", &ParseIfElseFunc));
-    stdFunc.insert(std::make_pair("cond", &ParseCondFunc));
+    stdFunc.insert(std::make_pair("define", &TParser::ParseDefineFunc));
+    stdFunc.insert(std::make_pair("begin", &TParser::ParseBeginFunc));
+    stdFunc.insert(std::make_pair("lambda", &TParser::ParseLambdaFunc));
+    stdFunc.insert(std::make_pair("if", &TParser::ParseIfElseFunc));
+    stdFunc.insert(std::make_pair("cond", &TParser::ParseCondFunc));
     Parse();
 }
 

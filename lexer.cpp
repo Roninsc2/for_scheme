@@ -128,7 +128,6 @@ bool TLexer::FileEOF() {
 
 void TLexer::FindToken(States state, std::string& value) {
     Tokens.push_back(Token(state, value));
-    std::cout << state << "\t" << value << std::endl;
     value.clear();
 }
 

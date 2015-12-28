@@ -1,17 +1,15 @@
-#include "byte_code.h"
+#include "byte_code_gen.h"
 
 
-TByteCode::TByteCode(const std::string fileName, const std::string outputFile): Parser(new TParser(fileName))
+TByteCodeGen::TByteCodeGen(const std::string fileName): Parser(new TParser(fileName))
 {
-    fout.open(outputFile);
-    GetByteCode();
+    GeTByteCodeGen();
 }
 
-TByteCode::~TByteCode() {
-    fout.close();
+TByteCodeGen::~TByteCodeGen() {
 }
 
-void TByteCode::GetByteCode()
+void TByteCodeGen::GeTByteCodeGen()
 {
     for (size_t i = 0; i < Parser->root.size(); i++) {
         Allocator(Parser->root[i]);
@@ -21,69 +19,67 @@ void TByteCode::GetByteCode()
             GetExprValue(Parser->root[i]);
         } else {
             FunctionAST* currentDefine = (FunctionAST*)Parser->root[i];
-            SaveMany(fout, (char)CMD_DEFSTART, currentDefine->Proto->Name, currentDefine->Proto->Args.size());
+            bytecodeString << ' ' << (char)CMD_DEFSTART << ' ' << currentDefine->Proto->Name << ' ' << currentDefine->Proto->Args.size() << ' ';
             for (size_t j = 0; j < currentDefine->Proto->Args.size(); j++) {
-                SaveMany(fout, currentDefine->Proto->Args[j]->name);
+                bytecodeString << ' ' << currentDefine->Proto->Args[j]->name << '\n';
             }
             for (size_t j = 0; j < currentDefine->Body.size(); j++) {
-                GetDefineByteCode(currentDefine->Body[j], currentDefine ->Proto->Name);
+                GetDefineByteCode(currentDefine->Body[j], currentDefine ->Proto->Name, bytecodeString.tellp());
             }
-            SaveMany(fout, (char)CMD_ENDDEF);
+            bytecodeString << ' ' << (char)CMD_ENDDEF << '\n';
         }
     }
 }
 
-void TByteCode::GetFuncByteCode(CallExprAST* func)
+void TByteCodeGen::GetFuncByteCode(CallExprAST* func)
 {
-    std::string name = func->Callee;
-    SaveMany(fout, (char)CMD_CALL, name);
+    bytecodeString << ' ' << (char)CMD_CALL << ' ' << func->Callee << '\n';
     for (size_t i = 0; i < func->Args.size(); i++) {
         GetExprValue(func->Args[i]);
     }
-    SaveMany(fout, (char)CMD_ENDCALL);
+    bytecodeString << ' ' << (char)CMD_ENDCALL << '\n';
 }
 
-void TByteCode::GetTaliCallByteCode(CallExprAST *func)
+void TByteCodeGen::GetTaliCallByteCode(CallExprAST *func, std::stringstream::pos_type pos)
 {
-    std::string name = func->Callee;
-    SaveMany(fout, (char)CMD_TAILCALL, name);
+    bytecodeString << ' ' << (char)CMD_TAILCALL << ' ' << func->Callee << ' ' << ((int)pos - 1) << '\n';
     for (size_t i = 0; i < func->Args.size(); i++) {
         GetExprValue(func->Args[i]);
     }
-    SaveMany(fout, (char)CMD_ENDCALL);
+    bytecodeString << ' ' << (char)CMD_ENDCALL << '\n';
 }
 
-void TByteCode::GetIfElseByteCode(IfElseExprAST *expr, std::string name)
+void TByteCodeGen::GetIfElseByteCode(IfElseExprAST *expr,  std::stringstream::pos_type pos, std::string name)
 {
     if (!name.size()) {
-        SaveMany(fout, (char)CMD_IFELSE);
+        bytecodeString << ' ' << (char)CMD_IFELSE << '\n';
         GetExprValue(expr->test.get());
         GetExprValue(expr->first.get());
         if (expr->second) {
             GetExprValue(expr->second.get());
         }
-        SaveMany(fout, (char)CMD_ENDCALL);
+        bytecodeString << ' ' << (char)CMD_ENDCALL << '\n';
     } else {
-        SaveMany(fout, (char)CMD_IFELSE);
-        GetDefineByteCode(expr->test.get(), name);
-        GetDefineByteCode(expr->first.get(), name);
+        bytecodeString << ' ' << (char)CMD_IFELSE << ' ';
+        GetDefineByteCode(expr->test.get(), name, pos);
+        GetDefineByteCode(expr->first.get(), name, pos);
         if (expr->second) {
-            GetDefineByteCode(expr->second.get(), name);
+            GetDefineByteCode(expr->second.get(), name, pos);
         }
-        SaveMany(fout, (char)CMD_ENDCALL);
+        bytecodeString << ' ' << (char)CMD_ENDCALL << '\n';
     }
 }
 
-void TByteCode::GetDefineByteCode(ExprAST* expr, std::string name)
+void TByteCodeGen::GetDefineByteCode(ExprAST* expr, std::string name, std::stringstream::pos_type pos)
 {
     switch (expr->Type){
     case SAT_IfElse: {
-        GetIfElseByteCode((IfElseExprAST*)expr, name);
+        GetIfElseByteCode((IfElseExprAST*)expr, pos, name);
         return;
     }
     case AT_Func: {
         if (((CallExprAST*)expr)->Callee == name) {
-            GetTaliCallByteCode((CallExprAST*)expr);
+            GetTaliCallByteCode((CallExprAST*)expr, pos);
         } else {
             GetFuncByteCode((CallExprAST*)expr);
         }
@@ -95,7 +91,7 @@ void TByteCode::GetDefineByteCode(ExprAST* expr, std::string name)
     }
 }
 
-void TByteCode::Allocator(ExprAST* expr)
+void TByteCodeGen::Allocator(ExprAST* expr)
 {
     if (IsInAllocatorValue(expr)) {
         return;
@@ -105,27 +101,27 @@ void TByteCode::Allocator(ExprAST* expr)
     }
     switch (expr->Type) {
     case AT_Int: {
-        SaveMany(fout, (char)CMD_AllOC, (char)VT_INT, ((NumberIntAST*)expr)->value);
+        bytecodeString << ' ' << (char)CMD_AllOC << ' ' << (char)VT_INT << ' ' << ((NumberIntAST*)expr)->value << '\n';
         return;
     }
     case AT_Double : {
-        SaveMany(fout, (char)CMD_AllOC, (char)VT_DOUBLE,((NumberDoubleAST*)expr)->value);
+        bytecodeString << ' ' << (char)CMD_AllOC << ' ' << (char)VT_DOUBLE << ' ' << ((NumberDoubleAST*)expr)->value << '\n';
         return;
     }
     case AT_String : {
-        SaveMany(fout, (char)CMD_AllOC, (char)VT_STRING, ((StringAST*)expr)->value);
+        bytecodeString << ' ' << (char)CMD_AllOC << ' ' << (char)VT_STRING << ' ' << ((StringAST*)expr)->value << '\n';
         return;
     }
     case AT_Symbol : {
-        SaveMany(fout, (char)CMD_AllOC, (char)VT_SYMBOL, ((SymbolAST*)expr)->value);
+        bytecodeString << ' ' << (char)CMD_AllOC << ' ' << (char)VT_SYMBOL << ' ' << ((SymbolAST*)expr)->value << '\n';
         return;
     }
     case AT_Char : {
-        SaveMany(fout, (char)CMD_AllOC, (char)VT_CHAR, ((CharAST*)expr)->value);
+        bytecodeString << ' ' << (char)CMD_AllOC << ' ' << (char)VT_CHAR << ' ' << ((CharAST*)expr)->value << '\n';
         return;
     }
     case AT_Bool : {
-        SaveMany(fout, (char)CMD_AllOC, (char)VT_BOOL, ((BoolAST*)expr)->value);
+        bytecodeString << ' ' << (char)CMD_AllOC << ' ' << (char)VT_BOOL << ' ' << ((BoolAST*)expr)->value << '\n';
         return;
     }
     case SAT_IfElse: {
@@ -155,10 +151,10 @@ void TByteCode::Allocator(ExprAST* expr)
     }
 }
 
-void TByteCode::GetExprValue(ExprAST *expr) {
+void TByteCodeGen::GetExprValue(ExprAST *expr) {
     switch (expr->Type) {
     case AT_Ident : {
-        SaveMany(fout, (char)CMD_PUSHIDENT, ((IdentAST*)expr)->name);
+        bytecodeString << ' ' << (char)CMD_PUSHIDENT << ' ' << ((IdentAST*)expr)->name << '\n';
         return;
     }
     case SAT_IfElse: {
@@ -170,13 +166,13 @@ void TByteCode::GetExprValue(ExprAST *expr) {
         return;
     }
     default: {
-        SaveMany(fout, (char)CMD_PUSH, GetAllocatorValue(expr));
+        bytecodeString << ' ' << (char)CMD_PUSH << ' ' << GetAllocatorValue(expr) << '\n';
         return;
     }
     }
 }
 
-size_t TByteCode::GetAllocatorValue(ExprAST *expr)
+size_t TByteCodeGen::GetAllocatorValue(ExprAST *expr)
 {
     for (auto it = allocatorValue.begin(); it != allocatorValue.end(); it++) {
         if (expr->Type == it->first->Type) {
@@ -225,7 +221,7 @@ size_t TByteCode::GetAllocatorValue(ExprAST *expr)
     }
 }
 
-bool TByteCode::IsInAllocatorValue(ExprAST *expr)
+bool TByteCodeGen::IsInAllocatorValue(ExprAST *expr)
 {
     for (auto it = allocatorValue.begin(); it != allocatorValue.end(); it++) {
         if (expr->Type == it->first->Type) {

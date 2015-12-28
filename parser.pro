@@ -8,14 +8,21 @@ QMAKE_CXXFLAGS += -std=c++11
 SOURCES += main.cpp \
     lexer.cpp \
     parser.cpp \
-    byte_code.cpp
+    byte_code_gen.cpp \
+    stack.cpp \
+    byte_code_cmd.cpp \
+    scheme_std_lib.cpp \
+    vlist.cpp
 
 HEADERS += \
     lexer.h \
     parser.h \
     ast.h \
-    byte_code.h \
     texeption.h \
-    saveload.h \
-    types.h
+    byte_code_gen.h \
+    stack.h \
+    byte_code_cmd.h \
+    vlist.h \
+    type.h \
+    saveload.h
 

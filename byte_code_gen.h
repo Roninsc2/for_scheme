@@ -2,35 +2,26 @@
 
 #include "parser.h"
 #include <unordered_map>
-#include <saveload.h>
+#include <sstream>
 
 
-/* command
- * 0 - allocator
- * 1 - push to stack
- * 2 - push ident
- * 3 - call
- * 4 - TAil call
- * 5 - func end
- * 6 - define start
- * 7 - define end
- * 8 - if else
-    */
-
-class TByteCode {
+class TByteCodeGen {
 public:
-    TByteCode(const std::string fileName, const std::string outputFile);
-    ~TByteCode();
-    void GetByteCode();
+    TByteCodeGen(const std::string fileName);
+    ~TByteCodeGen();
+    void GeTByteCodeGen();
     void GetFuncByteCode(CallExprAST* func);
-    void GetIfElseByteCode(IfElseExprAST* expr, std::string name = "");
-    void GetTaliCallByteCode(CallExprAST* func);
-    void GetDefineByteCode(ExprAST* expr, std::string name);
+    void GetIfElseByteCode(IfElseExprAST* expr, std::stringstream::pos_type pos = 0,  std::string name = "");
+    void GetTaliCallByteCode(CallExprAST* func, std::stringstream::pos_type pos);
+    void GetDefineByteCode(ExprAST* expr, std::string name, std::stringstream::pos_type pos);
     void Allocator(ExprAST* value);
     void GetExprValue(ExprAST* expr);
     size_t GetAllocatorValue(ExprAST* expr);
     bool IsInAllocatorValue(ExprAST* epxr);
 private:
+    std::shared_ptr< TParser > Parser;
+    std::unordered_map<ExprAST*, size_t> allocatorValue;
+public:
     enum Command {
         CMD_AllOC = '0',
         CMD_PUSH = '1',
@@ -51,7 +42,5 @@ private:
         VT_CHAR = '4',
         VT_BOOL = '5'
     };
-    std::shared_ptr< TParser > Parser;
-    std::unordered_map<ExprAST*, size_t> allocatorValue;
-    std::ofstream fout;
+    std::stringstream bytecodeString;
 };

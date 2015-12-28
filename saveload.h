@@ -79,17 +79,17 @@ public:
 };
 
 template <> class TSerializer<bool>: public TPodSerializer<bool> {};
-template <> class TSerializer<i8>: public TPodSerializer<i8> {};
-template <> class TSerializer<ui8>: public TPodSerializer<ui8> {};
-template <> class TSerializer<i16>: public TPodSerializer<i16> {};
-template <> class TSerializer<ui16>: public TPodSerializer<ui16> {};
-template <> class TSerializer<i32>: public TPodSerializer<i32> {};
-template <> class TSerializer<ui32>: public TPodSerializer<ui32> {};
+template <> class TSerializer<char>: public TPodSerializer<char> {};
+template <> class TSerializer<unsigned char>: public TPodSerializer<unsigned char> {};
+template <> class TSerializer<short>: public TPodSerializer<short> {};
+template <> class TSerializer<unsigned short>: public TPodSerializer<unsigned short> {};
+template <> class TSerializer<int>: public TPodSerializer<int> {};
+template <> class TSerializer<unsigned int>: public TPodSerializer<unsigned int> {};
 template <> class TSerializer<long>: public TPodSerializer<long> {};
 template <> class TSerializer<unsigned long>: public TPodSerializer<unsigned long> {};
 
-template <> class TSerializer<i64>: public TPodSerializer<i64> {};
-template <> class TSerializer<ui64>: public TPodSerializer<ui64> {};
+template <> class TSerializer<long long>: public TPodSerializer<long long> {};
+template <> class TSerializer<unsigned long long>: public TPodSerializer<unsigned long long> {};
 
 template <> class TSerializer<float>: public TPodSerializer<float> {};
 template <> class TSerializer<double>: public TPodSerializer<double> {};
@@ -105,180 +105,26 @@ static inline void Load(std::istream& in, T& t) {
     TSerializer<T>::Load(in, t);
 }
 
-template <class T1>
-static inline void SaveMany(std::ostream& out, const T1& t1) {
-    ::Save(out, t1);
-}
-template <class T1>
-static inline void LoadMany(std::istream& in, T1& t1) {
-    ::Load(in, t1);
+static inline void LoadMany(std::istream& in) {
+    return;
 }
 
-template <class T1, class T2>
-static inline void SaveMany(std::ostream& out, const T1& t1, const T2& t2) {
-    ::Save(out, t1);
-    ::Save(out, t2);
-}
-template <class T1, class T2>
-static inline void LoadMany(std::istream& in, T1& t1, T2& t2) {
-    ::Load(in, t1);
-    ::Load(in, t2);
+template<typename T, typename... Targs>
+static inline void LoadMany(std::istream& in, T& value, Targs&... args)
+{
+    ::Load(in, value);
+    LoadMany(in, args...);
 }
 
-template <class T1, class T2, class T3>
-static inline void SaveMany(std::ostream& out, const T1& t1, const T2& t2, const T3& t3) {
-    ::Save(out, t1);
-    ::Save(out, t2);
-    ::Save(out, t3);
-}
-template <class T1, class T2, class T3>
-static inline void LoadMany(std::istream& in, T1& t1, T2& t2, T3& t3) {
-    ::Load(in, t1);
-    ::Load(in, t2);
-    ::Load(in, t3);
+static inline void SaveMany(std::ostream& out) {
+    return;
 }
 
-template <class T1, class T2, class T3, class T4>
-static inline void SaveMany(std::ostream& out, const T1& t1, const T2& t2, const T3& t3, const T4& t4) {
-    ::Save(out, t1);
-    ::Save(out, t2);
-    ::Save(out, t3);
-    ::Save(out, t4);
-}
-template <class T1, class T2, class T3, class T4>
-static inline void LoadMany(std::istream& in, T1& t1, T2& t2, T3& t3, T4& t4) {
-    ::Load(in, t1);
-    ::Load(in, t2);
-    ::Load(in, t3);
-    ::Load(in, t4);
-}
-
-template <class T1, class T2, class T3, class T4, class T5>
-static inline void SaveMany(std::ostream& out, const T1& t1, const T2& t2,
-                            const T3& t3, const T4& t4, const T5& t5)
+template<typename T, typename... Targs>
+static inline void SaveMany(std::ostream& out, const T& value, const Targs&... args)
 {
-    ::Save(out, t1);
-    ::Save(out, t2);
-    ::Save(out, t3);
-    ::Save(out, t4);
-    ::Save(out, t5);
-}
-template <class T1, class T2, class T3, class T4, class T5>
-static inline void LoadMany(std::istream& in, T1& t1, T2& t2, T3& t3,
-                            T4& t4, T5& t5)
-{
-    ::Load(in, t1);
-    ::Load(in, t2);
-    ::Load(in, t3);
-    ::Load(in, t4);
-    ::Load(in, t5);
-}
-
-template <class T1, class T2, class T3, class T4, class T5, class T6>
-static inline void SaveMany(std::ostream& out, const T1& t1, const T2& t2,
-                            const T3& t3, const T4& t4, const T5& t5, const T6& t6)
-{
-    ::Save(out, t1);
-    ::Save(out, t2);
-    ::Save(out, t3);
-    ::Save(out, t4);
-    ::Save(out, t5);
-    ::Save(out, t6);
-}
-template <class T1, class T2, class T3, class T4, class T5, class T6>
-static inline void LoadMany(std::istream& in, T1& t1, T2& t2, T3& t3,
-                            T4& t4, T5& t5, T6& t6)
-{
-    ::Load(in, t1);
-    ::Load(in, t2);
-    ::Load(in, t3);
-    ::Load(in, t4);
-    ::Load(in, t5);
-    ::Load(in, t6);
-}
-
-template <class T1, class T2, class T3, class T4, class T5, class T6, class T7>
-static inline void SaveMany(std::ostream& out, const T1& t1, const T2& t2,
-                            const T3& t3, const T4& t4, const T5& t5, const T6& t6,
-                            const T7& t7)
-{
-    ::Save(out, t1);
-    ::Save(out, t2);
-    ::Save(out, t3);
-    ::Save(out, t4);
-    ::Save(out, t5);
-    ::Save(out, t6);
-    ::Save(out, t7);
-}
-template <class T1, class T2, class T3, class T4, class T5, class T6, class T7>
-static inline void LoadMany(std::istream& in, T1& t1, T2& t2, T3& t3,
-                            T4& t4, T5& t5, T6& t6, T7& t7)
-{
-    ::Load(in, t1);
-    ::Load(in, t2);
-    ::Load(in, t3);
-    ::Load(in, t4);
-    ::Load(in, t5);
-    ::Load(in, t6);
-    ::Load(in, t7);
-}
-
-template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
-static inline void SaveMany(std::ostream& out, const T1& t1, const T2& t2,
-                            const T3& t3, const T4& t4, const T5& t5, const T6& t6,
-                            const T7& t7, const T8& t8)
-{
-    ::Save(out, t1);
-    ::Save(out, t2);
-    ::Save(out, t3);
-    ::Save(out, t4);
-    ::Save(out, t5);
-    ::Save(out, t6);
-    ::Save(out, t7);
-    ::Save(out, t8);
-}
-template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
-static inline void LoadMany(std::istream& in, T1& t1, T2& t2, T3& t3,
-                            T4& t4, T5& t5, T6& t6, T7& t7, T8& t8)
-{
-    ::Load(in, t1);
-    ::Load(in, t2);
-    ::Load(in, t3);
-    ::Load(in, t4);
-    ::Load(in, t5);
-    ::Load(in, t6);
-    ::Load(in, t7);
-    ::Load(in, t8);
-}
-
-template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9>
-static inline void SaveMany(std::ostream& out, const T1& t1, const T2& t2,
-                            const T3& t3, const T4& t4, const T5& t5, const T6& t6,
-                            const T7& t7, const T8& t8, const T9& t9)
-{
-    ::Save(out, t1);
-    ::Save(out, t2);
-    ::Save(out, t3);
-    ::Save(out, t4);
-    ::Save(out, t5);
-    ::Save(out, t6);
-    ::Save(out, t7);
-    ::Save(out, t8);
-    ::Save(out, t9);
-}
-template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9>
-static inline void LoadMany(std::istream& in, T1& t1, T2& t2, T3& t3,
-                            T4& t4, T5& t5, T6& t6, T7& t7, T8& t8, T9& t9)
-{
-    ::Load(in, t1);
-    ::Load(in, t2);
-    ::Load(in, t3);
-    ::Load(in, t4);
-    ::Load(in, t5);
-    ::Load(in, t6);
-    ::Load(in, t7);
-    ::Load(in, t8);
-    ::Load(in, t9);
+    ::Save(out, value);
+    SaveMany(out, args...);
 }
 
 #define SAVELOAD(...) \
