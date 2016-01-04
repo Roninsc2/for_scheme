@@ -3,26 +3,21 @@
 #include "type.h"
 
 enum ECommand {
-    ECMD_AllOC = '0',
-    ECMD_PUSH = '1',
-    ECMD_PUSHIDENT = '2',
-    ECMD_IFELSE = '3',
-    ECMD_CALL = '4',
-    ECMD_TAILCALL = '5',
-    ECMD_DEFSTART = '6',
-    ECMD_ENDCALL = '7',
-    ECMD_ENDDEF = '8',
+    ECMD_AllOCINT = 0,
+    ECMD_AllOCDOUBLE = 1,
+    ECMD_AllOCSTRING = 2,
+    ECMD_AllOCSYMBOL = 3,
+    ECMD_AllOCCHAR = 4,
+    ECMD_AllOCBOOL = 5,
+    ECMD_PUSH = 6,
+    ECMD_PUSHIDENT = 7,
+    ECMD_IFELSE = 8,
+    ECMD_CALL = 9,
+    ECMD_TAILCALL = 10,
+    ECMD_DEFSTART = 11,
+    ECMD_ENDCALL = 12,
+    ECMD_ENDDEF = 13
 };
-
-enum EValueType {
-    EVT_INT = '0',
-    EVT_DOUBLE = '1',
-    EVT_STRING = '2',
-    EVT_SYMBOL = '3',
-    EVT_CHAR = '4',
-    EVT_BOOL = '5'
-};
-
 
 class TByteCodeCMD {
 public:
@@ -31,44 +26,74 @@ public:
     ECommand Type;
 };
 
-
-class TByteCodeCMDAlloc: public TByteCodeCMD {
+class TByteCodeCMDAllocInt: public TByteCodeCMD {
 public:
-    TByteCodeCMDAlloc(std::vector<ExprType*>* allocator, std::stringstream& str);
-    virtual void UpdateStack();
-    ECommand Type = ECMD_AllOC;
+    TByteCodeCMDAllocInt(int val);
+    virtual void UpdateStack(std::vector<ExprType*>& allocator);
 private:
-    std::vector<ExprType*>* Allocator;
-    std::stringstream& byteCodeString;
+    int value;
+};
+
+class TByteCodeCMDAllocDouble: public TByteCodeCMD {
+public:
+    TByteCodeCMDAllocDouble(double val);
+    virtual void UpdateStack(std::vector<ExprType*>& allocator);
+private:
+    double value;
+};
+
+class TByteCodeCMDAllocChar: public TByteCodeCMD {
+public:
+    TByteCodeCMDAllocChar(char val);
+    virtual void UpdateStack(std::vector<ExprType*>& allocator);
+private:
+    char value;
+};
+
+class TByteCodeCMDAllocString: public TByteCodeCMD {
+public:
+    TByteCodeCMDAllocString(std::string val);
+    virtual void UpdateStack(std::vector<ExprType*>& allocator);
+private:
+    std::string value;
+};
+
+class TByteCodeCMDAllocSymbol: public TByteCodeCMD {
+public:
+    TByteCodeCMDAllocSymbol(std::string val);
+    virtual void UpdateStack(std::vector<ExprType*>& allocator);
+private:
+    std::string value;
+};
+
+class TByteCodeCMDAllocBool: public TByteCodeCMD {
+public:
+    TByteCodeCMDAllocBool(bool val);
+    virtual void UpdateStack(std::vector<ExprType*>& allocator);
+private:
+    bool value;
 };
 
 class TByteCodeCMDPush: public TByteCodeCMD {
 public:
-    TByteCodeCMDPush(std::vector<ExprType*>* stack, std::vector<ExprType*> allocator, std::stringstream& str);
-    virtual void UpdateStack();
-    ECommand Type = ECMD_PUSH;
+    TByteCodeCMDPush(size_t valNum);
+    virtual void UpdateStack(std::vector<ExprType*>& stack, std::vector<ExprType*> allocator);
 private:
-    std::vector<ExprType*>* Stack;
-    std::vector<ExprType*> Allocator;
-    std::stringstream& byteCodeString;
+    size_t valueNumber;
 };
 
 class TByteCodeCMDPushIdent: public TByteCodeCMD {
 public:
-    TByteCodeCMDPushIdent(std::vector<ExprType*>* stack, std::map<std::string, IdentType* > definevar, std::stringstream& str);
-    virtual void UpdateStack();
-    ECommand Type = ECMD_PUSHIDENT;
+    TByteCodeCMDPushIdent(std::string val);
+    virtual void UpdateStack(std::vector<ExprType*>& stack, std::map<std::string, IdentType* > definevar);
 private:
-    std::vector<ExprType*>* Stack;
-    std::stringstream& byteCodeString;
-    std::map<std::string, IdentType* > defineVar;
+    std::string value;
 };
 
 class TByteCodeCMDIfElse: public TByteCodeCMD {
 public:
     TByteCodeCMDIfElse(std::vector<ExprType*>* stack, std::stringstream& str);
     virtual void UpdateStack();
-    ECommand Type = ECMD_IFELSE;
 private:
     std::vector<ExprType*>* Stack;
     std::stringstream& byteCodeString;
@@ -76,42 +101,47 @@ private:
 
 class TByteCodeCMDDefine: public TByteCodeCMD {
 public:
-    TByteCodeCMDDefine(std::map<std::string, FunctionType* >* define, std::stringstream& str);
-    virtual void UpdateStack();
-    ECommand Type = ECMD_DEFSTART;
+    TByteCodeCMDDefine(std::string name, size_t sizeArgs, std::vector<std::string> identName);
+    virtual void UpdateStack(std::map<std::string, FunctionType* >& Define, std::vector<TByteCodeCMD*> command, size_t& it);
 private:
-    std::map<std::string, FunctionType* >* Define;
-    std::stringstream& byteCodeString;
+    std::map<std::string, IdentType*> args;
+    std::string funcName;
 };
 
 class TByteCodeCMDCall: public TByteCodeCMD {
 public:
-    TByteCodeCMDCall(std::vector<ExprType*>* stack, std::vector<ExprType*> allocator, std::map<std::string, IdentType* > definevar,
-                     std::map<std::string, FunctionType* > define, std::stringstream& str);
-    virtual void UpdateStack();
-    ECommand Type = ECMD_CALL;
+    TByteCodeCMDCall(std::string callee);
+    virtual void UpdateStack(std::vector<ExprType*>& stack, std::vector<ExprType*> allocator, std::map<std::string, IdentType* > definevar,
+                             std::map<std::string, FunctionType* > define, std::vector<TByteCodeCMD*> command, size_t& it);
 private:
-    std::vector<ExprType*>* Stack;
-    std::vector<ExprType*> Allocator;
-    std::map<std::string, FunctionType* > Define;
-    std::map<std::string, IdentType* > defineVar;
-    std::stringstream& byteCodeString;
+    std::string name;
     std::shared_ptr<TByteCodeCMD> currentCommand;
     std::map<std::string, ExprType*(*)(std::vector< ExprType* >) > stdFuncMap;
 };
 
 class TByteCodeCMDTailCall: public TByteCodeCMD {
 public:
-    TByteCodeCMDTailCall(std::vector<ExprType*>* stack, std::vector<ExprType *> allocator, std::map<std::string, IdentType *> definevar, std::map<std::string, FunctionType* > define,  std::stringstream& str);
-    virtual void UpdateStack();
-    ECommand Type = ECMD_TAILCALL;
+    TByteCodeCMDTailCall(std::string callee, size_t p);
+    virtual void UpdateStack(std::vector<ExprType*> allocator, std::map<std::string, IdentType* > defineVar,
+                             std::map<std::string, FunctionType* > Define, std::vector<TByteCodeCMD*> command, size_t& it);
 private:
-    std::vector<ExprType*>* Stack;
-    std::vector<ExprType*> Allocator;
-    std::map<std::string, FunctionType* > Define;
-    std::map<std::string, IdentType* > defineVar;
-    std::stringstream& byteCodeString;
+    std::string name;
+    size_t pos;
     std::shared_ptr<TByteCodeCMD> currentCommand;
     std::map<std::string, ExprType*(*)(std::vector< ExprType* >) > stdFuncMap;
 };
 
+
+class TByteCodeCMDEndCall: public TByteCodeCMD {
+public:
+    TByteCodeCMDEndCall() {
+        Type = ECMD_ENDCALL;
+    }
+};
+
+class TByteCodeCMDEndDef: public TByteCodeCMD {
+public:
+    TByteCodeCMDEndDef() {
+        Type = ECMD_ENDDEF;
+    }
+};

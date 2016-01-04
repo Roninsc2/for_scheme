@@ -4,7 +4,6 @@
 
 TStack::TStack(const std::string fileName) : byteCodeGen(new TByteCodeGen(fileName))
 {
-    std::cout << byteCodeGen->bytecodeString.str();
     DoCode();
     PrintResult();
 }
@@ -13,45 +12,61 @@ TStack::~TStack()
 {
 }
 
+
+
 void TStack::DoCode()
 {
-    while (!(byteCodeGen->bytecodeString.eof())) {
-        char cmd;
-        byteCodeGen->bytecodeString >> cmd;
-        switch ((ECommand)cmd) {
-        case ECMD_AllOC: {
-            byteCodeCMD.reset(new TByteCodeCMDAlloc(&allocator, byteCodeGen->bytecodeString));
-            byteCodeCMD->UpdateStack();
-            break;
+    while (it < byteCodeGen->command.size()) {
+        switch (byteCodeGen->command[it]->Type) {
+            case ECMD_AllOCINT: {
+                dynamic_cast<TByteCodeCMDAllocInt*>(byteCodeGen->command[it])->UpdateStack(allocator);
+                break;
+            }
+            case ECMD_AllOCDOUBLE: {
+                dynamic_cast<TByteCodeCMDAllocDouble*>(byteCodeGen->command[it])->UpdateStack(allocator);
+                break;
+            }
+            case ECMD_AllOCCHAR: {
+                dynamic_cast<TByteCodeCMDAllocChar*>(byteCodeGen->command[it])->UpdateStack(allocator);
+                break;
+            }
+            case ECMD_AllOCSTRING: {
+                dynamic_cast<TByteCodeCMDAllocString*>(byteCodeGen->command[it])->UpdateStack(allocator);
+                break;
+            }
+            case ECMD_AllOCSYMBOL: {
+                dynamic_cast<TByteCodeCMDAllocSymbol*>(byteCodeGen->command[it])->UpdateStack(allocator);
+                break;
+            }
+            case ECMD_AllOCBOOL: {
+                dynamic_cast<TByteCodeCMDAllocBool*>(byteCodeGen->command[it])->UpdateStack(allocator);
+                break;
+            }
+            case ECMD_PUSH: {
+                dynamic_cast<TByteCodeCMDPush*>(byteCodeGen->command[it])->UpdateStack(stack, allocator);
+                break;
+            }
+            case ECMD_PUSHIDENT: {
+                dynamic_cast<TByteCodeCMDPushIdent*>(byteCodeGen->command[it])->UpdateStack(stack, defineVar);
+                break;
+            }
+            case ECMD_CALL: {
+                dynamic_cast<TByteCodeCMDCall*>(byteCodeGen->command[it])->UpdateStack(stack, allocator, defineVar, defineFunc, byteCodeGen->command, it);
+                break;
+            }
+            case ECMD_DEFSTART: {
+                dynamic_cast<TByteCodeCMDDefine*>(byteCodeGen->command[it])->UpdateStack(defineFunc, byteCodeGen->command, it);
+                break;
+            }
+            case ECMD_IFELSE: {
+                /*byteCodeCMD.reset(new TByteCodeCMDIfElse(&stack, byteCodeGen->command, it));
+                byteCodeCMD->UpdateStack();*/
+                break;
+            }
+            default:
+                break;
         }
-        case ECMD_PUSH: {
-            byteCodeCMD.reset(new TByteCodeCMDPush(&stack, allocator, byteCodeGen->bytecodeString));
-            byteCodeCMD->UpdateStack();
-            break;
-        }
-        case ECMD_PUSHIDENT: {
-            byteCodeCMD.reset(new TByteCodeCMDPushIdent(&stack, defineVar, byteCodeGen->bytecodeString));
-            byteCodeCMD->UpdateStack();
-            break;
-        }
-        case ECMD_CALL: {
-            byteCodeCMD.reset(new TByteCodeCMDCall(&stack, allocator, defineVar, defineFunc, byteCodeGen->bytecodeString));
-            byteCodeCMD->UpdateStack();
-            break;
-        }
-        case ECMD_DEFSTART: {
-            byteCodeCMD.reset(new TByteCodeCMDDefine(&defineFunc, byteCodeGen->bytecodeString));
-            byteCodeCMD->UpdateStack();
-            break;
-        }
-        case ECMD_IFELSE: {
-            byteCodeCMD.reset(new TByteCodeCMDIfElse(&stack, byteCodeGen->bytecodeString));
-            byteCodeCMD->UpdateStack();
-            break;
-        }
-        default:
-            break;
-        }
+        it++;
     }
 }
 

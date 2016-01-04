@@ -3,90 +3,91 @@
 
 TByteCodeGen::TByteCodeGen(const std::string fileName): Parser(new TParser(fileName))
 {
-    GeTByteCodeGen();
+    GenByteCode();
 }
 
 TByteCodeGen::~TByteCodeGen() {
 }
 
-void TByteCodeGen::GeTByteCodeGen()
+void TByteCodeGen::GenByteCode()
 {
     for (size_t i = 0; i < Parser->root.size(); i++) {
         Allocator(Parser->root[i]);
     }
     for (size_t i = 0; i < Parser->root.size(); i++) {
         if (Parser->root[i]->Type != SAT_Define) {
-            GetExprValue(Parser->root[i]);
+            GenExprValue(Parser->root[i]);
         } else {
             FunctionAST* currentDefine = (FunctionAST*)Parser->root[i];
-            bytecodeString << ' ' << (char)CMD_DEFSTART << ' ' << currentDefine->Proto->Name << ' ' << currentDefine->Proto->Args.size() << ' ';
+            std::vector<std::string> args;
             for (size_t j = 0; j < currentDefine->Proto->Args.size(); j++) {
-                bytecodeString << ' ' << currentDefine->Proto->Args[j]->name << '\n';
+                args.push_back(currentDefine->Proto->Args[j]->name);
             }
+            command.push_back(new TByteCodeCMDDefine(currentDefine->Proto->Name, currentDefine->Proto->Args.size(), args));
             for (size_t j = 0; j < currentDefine->Body.size(); j++) {
-                GetDefineByteCode(currentDefine->Body[j], currentDefine ->Proto->Name, bytecodeString.tellp());
+                GenDefineByteCode(currentDefine->Body[j], currentDefine ->Proto->Name, command.size());
             }
-            bytecodeString << ' ' << (char)CMD_ENDDEF << '\n';
+            command.push_back(new TByteCodeCMDEndDef());
         }
     }
 }
 
-void TByteCodeGen::GetFuncByteCode(CallExprAST* func)
+void TByteCodeGen::GenFuncByteCode(CallExprAST* func)
 {
-    bytecodeString << ' ' << (char)CMD_CALL << ' ' << func->Callee << '\n';
+    command.push_back(new TByteCodeCMDCall(func->Callee));
     for (size_t i = 0; i < func->Args.size(); i++) {
-        GetExprValue(func->Args[i]);
+        GenExprValue(func->Args[i]);
     }
-    bytecodeString << ' ' << (char)CMD_ENDCALL << '\n';
+    command.push_back(new TByteCodeCMDEndCall());
 }
 
-void TByteCodeGen::GetTaliCallByteCode(CallExprAST *func, std::stringstream::pos_type pos)
+void TByteCodeGen::GenTaliCallByteCode(CallExprAST *func, size_t pos)
 {
-    bytecodeString << ' ' << (char)CMD_TAILCALL << ' ' << func->Callee << ' ' << ((int)pos - 1) << '\n';
+    command.push_back(new TByteCodeCMDTailCall(func->Callee, pos));
     for (size_t i = 0; i < func->Args.size(); i++) {
-        GetExprValue(func->Args[i]);
+        GenExprValue(func->Args[i]);
     }
-    bytecodeString << ' ' << (char)CMD_ENDCALL << '\n';
+    command.push_back(new TByteCodeCMDEndCall());
 }
 
-void TByteCodeGen::GetIfElseByteCode(IfElseExprAST *expr,  std::stringstream::pos_type pos, std::string name)
+void TByteCodeGen::GenIfElseByteCode(IfElseExprAST *expr,  size_t pos, std::string name)
 {
     if (!name.size()) {
-        bytecodeString << ' ' << (char)CMD_IFELSE << '\n';
-        GetExprValue(expr->test.get());
-        GetExprValue(expr->first.get());
+        //bytecodeString << ' ' << (char)CMD_IFELSE << '\n';
+        GenExprValue(expr->test.get());
+        GenExprValue(expr->first.get());
         if (expr->second) {
-            GetExprValue(expr->second.get());
+            GenExprValue(expr->second.get());
         }
-        bytecodeString << ' ' << (char)CMD_ENDCALL << '\n';
+        command.push_back(new TByteCodeCMDEndCall());
     } else {
-        bytecodeString << ' ' << (char)CMD_IFELSE << ' ';
-        GetDefineByteCode(expr->test.get(), name, pos);
-        GetDefineByteCode(expr->first.get(), name, pos);
+        //bytecodeString << ' ' << (char)CMD_IFELSE << ' ';
+        GenDefineByteCode(expr->test.get(), name, pos);
+        GenDefineByteCode(expr->first.get(), name, pos);
         if (expr->second) {
-            GetDefineByteCode(expr->second.get(), name, pos);
+            GenDefineByteCode(expr->second.get(), name, pos);
         }
-        bytecodeString << ' ' << (char)CMD_ENDCALL << '\n';
+        command.push_back(new TByteCodeCMDEndCall());
     }
 }
 
-void TByteCodeGen::GetDefineByteCode(ExprAST* expr, std::string name, std::stringstream::pos_type pos)
+void TByteCodeGen::GenDefineByteCode(ExprAST* expr, std::string name, size_t pos)
 {
     switch (expr->Type){
     case SAT_IfElse: {
-        GetIfElseByteCode((IfElseExprAST*)expr, pos, name);
+        GenIfElseByteCode((IfElseExprAST*)expr, pos, name);
         return;
     }
     case AT_Func: {
         if (((CallExprAST*)expr)->Callee == name) {
-            GetTaliCallByteCode((CallExprAST*)expr, pos);
+            GenTaliCallByteCode((CallExprAST*)expr, pos);
         } else {
-            GetFuncByteCode((CallExprAST*)expr);
+            GenFuncByteCode((CallExprAST*)expr);
         }
         return;
     }
     default:
-        GetExprValue(expr);
+        GenExprValue(expr);
         return;
     }
 }
@@ -101,27 +102,27 @@ void TByteCodeGen::Allocator(ExprAST* expr)
     }
     switch (expr->Type) {
     case AT_Int: {
-        bytecodeString << ' ' << (char)CMD_AllOC << ' ' << (char)VT_INT << ' ' << ((NumberIntAST*)expr)->value << '\n';
+        command.push_back(new TByteCodeCMDAllocInt(((NumberIntAST*)expr)->value));
         return;
     }
     case AT_Double : {
-        bytecodeString << ' ' << (char)CMD_AllOC << ' ' << (char)VT_DOUBLE << ' ' << ((NumberDoubleAST*)expr)->value << '\n';
+        command.push_back(new TByteCodeCMDAllocDouble(((NumberDoubleAST*)expr)->value));
         return;
     }
     case AT_String : {
-        bytecodeString << ' ' << (char)CMD_AllOC << ' ' << (char)VT_STRING << ' ' << ((StringAST*)expr)->value << '\n';
+        command.push_back(new TByteCodeCMDAllocString(((StringAST*)expr)->value));
         return;
     }
     case AT_Symbol : {
-        bytecodeString << ' ' << (char)CMD_AllOC << ' ' << (char)VT_SYMBOL << ' ' << ((SymbolAST*)expr)->value << '\n';
+        command.push_back(new TByteCodeCMDAllocSymbol(((SymbolAST*)expr)->value));
         return;
     }
     case AT_Char : {
-        bytecodeString << ' ' << (char)CMD_AllOC << ' ' << (char)VT_CHAR << ' ' << ((CharAST*)expr)->value << '\n';
+        command.push_back(new TByteCodeCMDAllocChar(((CharAST*)expr)->value));
         return;
     }
     case AT_Bool : {
-        bytecodeString << ' ' << (char)CMD_AllOC << ' ' << (char)VT_BOOL << ' ' << ((BoolAST*)expr)->value << '\n';
+        command.push_back(new TByteCodeCMDAllocBool(((BoolAST*)expr)->value));
         return;
     }
     case SAT_IfElse: {
@@ -151,28 +152,28 @@ void TByteCodeGen::Allocator(ExprAST* expr)
     }
 }
 
-void TByteCodeGen::GetExprValue(ExprAST *expr) {
+void TByteCodeGen::GenExprValue(ExprAST *expr) {
     switch (expr->Type) {
     case AT_Ident : {
-        bytecodeString << ' ' << (char)CMD_PUSHIDENT << ' ' << ((IdentAST*)expr)->name << '\n';
+        command.push_back(new TByteCodeCMDPushIdent(((IdentAST*)expr)->name));
         return;
     }
     case SAT_IfElse: {
-        GetIfElseByteCode((IfElseExprAST*)expr);
+        GenIfElseByteCode((IfElseExprAST*)expr);
         return;
     }
     case AT_Func : {
-        GetFuncByteCode((CallExprAST*)expr);
+        GenFuncByteCode((CallExprAST*)expr);
         return;
     }
     default: {
-        bytecodeString << ' ' << (char)CMD_PUSH << ' ' << GetAllocatorValue(expr) << '\n';
+        command.push_back(new TByteCodeCMDPush(GenAllocatorValue(expr)));
         return;
     }
     }
 }
 
-size_t TByteCodeGen::GetAllocatorValue(ExprAST *expr)
+size_t TByteCodeGen::GenAllocatorValue(ExprAST *expr)
 {
     for (auto it = allocatorValue.begin(); it != allocatorValue.end(); it++) {
         if (expr->Type == it->first->Type) {

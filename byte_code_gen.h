@@ -3,20 +3,21 @@
 #include "parser.h"
 #include <unordered_map>
 #include <sstream>
+#include "byte_code_cmd.h"
 
 
 class TByteCodeGen {
 public:
     TByteCodeGen(const std::string fileName);
     ~TByteCodeGen();
-    void GeTByteCodeGen();
-    void GetFuncByteCode(CallExprAST* func);
-    void GetIfElseByteCode(IfElseExprAST* expr, std::stringstream::pos_type pos = 0,  std::string name = "");
-    void GetTaliCallByteCode(CallExprAST* func, std::stringstream::pos_type pos);
-    void GetDefineByteCode(ExprAST* expr, std::string name, std::stringstream::pos_type pos);
+    void GenByteCode();
+    void GenFuncByteCode(CallExprAST* func);
+    void GenIfElseByteCode(IfElseExprAST* expr, size_t pos = 0,  std::string name = "");
+    void GenTaliCallByteCode(CallExprAST* func, size_t pos);
+    void GenDefineByteCode(ExprAST* expr, std::string name, size_t pos);
     void Allocator(ExprAST* value);
-    void GetExprValue(ExprAST* expr);
-    size_t GetAllocatorValue(ExprAST* expr);
+    void GenExprValue(ExprAST* expr);
+    size_t GenAllocatorValue(ExprAST* expr);
     bool IsInAllocatorValue(ExprAST* epxr);
 private:
     std::shared_ptr< TParser > Parser;
@@ -42,5 +43,5 @@ public:
         VT_CHAR = '4',
         VT_BOOL = '5'
     };
-    std::stringstream bytecodeString;
+    std::vector<TByteCodeCMD*> command;
 };

@@ -159,7 +159,7 @@ public:
 
 class FunctionType: public ExprType {
 public:
-    FunctionType(PrototypeType* proto, std::stringstream::pos_type start, std::stringstream::pos_type end)
+    FunctionType(PrototypeType* proto, size_t start, size_t end)
         : Proto(proto)
     {
         Start = start;
@@ -168,6 +168,6 @@ public:
     }
 public:
     std::shared_ptr< PrototypeType >Proto;
-    std::stringstream::pos_type Start;
-    std::stringstream::pos_type End;
+    size_t Start;
+    size_t End;
 };

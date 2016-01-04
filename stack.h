@@ -21,5 +21,5 @@ private:
     std::map<std::string, FunctionType* > defineFunc;
     std::shared_ptr<TByteCodeGen> byteCodeGen;
     std::shared_ptr <TByteCodeCMD> byteCodeCMD;
-    std::string byteCodeString;
+    size_t it = 0;
 };
