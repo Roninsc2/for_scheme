@@ -125,10 +125,10 @@ public:
 class CallExprType : public ExprType {
 public:
   std::string Callee;
-  std::vector< ExprType* > Args;
+  std::vector< std::shared_ptr<ExprType> > Args;
 
 public:
-  CallExprType(const std::string &callee, std::vector< ExprType* > &args)
+  CallExprType(const std::string &callee, std::vector< std::shared_ptr<ExprType> > &args)
     : Callee(callee), Args(args)
   {
       Type = T_CallFunc;

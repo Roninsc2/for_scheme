@@ -1,3 +1,5 @@
-(define (aaaa b c)
-	(cons (+ b c) (- b c)))
-(aaaa 1 2)
+(define (aa b c)
+	(if (= b 10)
+	    (+ b c)
+	    (aa (+ 1 b) c)))
+(aa 1 2)

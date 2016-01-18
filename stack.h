@@ -15,11 +15,10 @@ private:
     void DoCode();
     void PrintResult();
 private:
-    std::vector< ExprType* > stack;
-    std::vector< ExprType* > allocator;
+    std::vector< std::shared_ptr<ExprType> > stack;
+    std::vector< std::shared_ptr<ExprType> > allocator;
     std::map<std::string, IdentType* > defineVar;
     std::map<std::string, FunctionType* > defineFunc;
     std::shared_ptr<TByteCodeGen> byteCodeGen;
-    std::shared_ptr <TByteCodeCMD> byteCodeCMD;
     size_t it = 0;
 };

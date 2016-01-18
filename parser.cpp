@@ -19,9 +19,9 @@ void TParser::Parse() {
         case State_EOF : return;
         case State_Ident : {
             if (stdFunc.count(CurrentToken.value)) {
-                root.push_back((this->*(stdFunc.at(CurrentToken.value)))());
+                root.push_back(std::shared_ptr<ExprAST>((this->*(stdFunc.at(CurrentToken.value)))()));
             } else {
-                root.push_back(ParseCallExprAST());
+                root.push_back(std::shared_ptr<ExprAST>(ParseCallExprAST()));
             }
             break;
         }
@@ -34,7 +34,7 @@ void TParser::Parse() {
             break;
         }
         default:
-            root.push_back(GetExprType());
+            root.push_back(std::shared_ptr<ExprAST>(GetExprType()));
         }
     }
 }

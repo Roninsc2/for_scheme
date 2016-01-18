@@ -8,7 +8,8 @@ class TParser {
 
 public:
     TParser(const std::string fileName);
-    ~TParser(){}
+    ~TParser(){
+    }
     void GetNextToken();
 
 private:
@@ -31,5 +32,5 @@ private:
     Token CurrentToken;
     int i = 0;
 public:
-    std::vector< ExprAST* > root;
+    std::vector< std::shared_ptr<ExprAST> > root;
 };

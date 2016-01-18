@@ -1,7 +1,7 @@
 #pragma once
 
 #include "parser.h"
-#include <unordered_map>
+#include <map>
 #include <sstream>
 #include "byte_code_cmd.h"
 
@@ -21,7 +21,7 @@ public:
     bool IsInAllocatorValue(ExprAST* epxr);
 private:
     std::shared_ptr< TParser > Parser;
-    std::unordered_map<ExprAST*, size_t> allocatorValue;
+    std::map<ExprAST*, size_t> allocatorValue;
 public:
     enum Command {
         CMD_AllOC = '0',
@@ -43,5 +43,5 @@ public:
         VT_CHAR = '4',
         VT_BOOL = '5'
     };
-    std::vector<TByteCodeCMD*> command;
+    std::vector<std::shared_ptr<TByteCodeCMD>> command;
 };
