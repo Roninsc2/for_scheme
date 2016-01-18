@@ -27,7 +27,7 @@ void TByteCodeGen::GenByteCode()
             command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDDefine(currentDefine->Proto->Name,
                                                                                    currentDefine->Proto->Args.size(), args)));
             for (size_t j = 0; j < currentDefine->Body.size(); j++) {
-                GenDefineByteCode(currentDefine->Body[j], currentDefine ->Proto->Name, command.size());
+                GenDefineByteCode(currentDefine->Body[j].get(), currentDefine->Proto->Name, command.size());
             }
             command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDEndDef()));
         }
@@ -38,7 +38,7 @@ void TByteCodeGen::GenFuncByteCode(CallExprAST* func)
 {
     command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDCall(func->Callee)));
     for (size_t i = 0; i < func->Args.size(); i++) {
-        GenExprValue(func->Args[i]);
+        GenExprValue(func->Args[i].get());
     }
     command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDEndCall()));
 }
@@ -47,7 +47,7 @@ void TByteCodeGen::GenTaliCallByteCode(CallExprAST *func, size_t pos)
 {
     command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDTailCall(func->Callee, pos)));
     for (size_t i = 0; i < func->Args.size(); i++) {
-        GenExprValue(func->Args[i]);
+        GenExprValue(func->Args[i].get());
     }
     command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDEndCall()));
 }
@@ -138,14 +138,14 @@ void TByteCodeGen::Allocator(ExprAST* expr)
     case AT_Func : {
         size_t size = dynamic_cast<CallExprAST*>(expr)->Args.size();
         for (size_t i = 0; i < size; i++) {
-            Allocator(dynamic_cast<CallExprAST*>(expr)->Args[i]);
+            Allocator(dynamic_cast<CallExprAST*>(expr)->Args[i].get());
         }
         return;
     }
     case SAT_Define: {
         size_t size = dynamic_cast<FunctionAST*>(expr)->Body.size();
         for (size_t i = 0; i < size; i++) {
-            Allocator(dynamic_cast<FunctionAST*>(expr)->Body[i]);
+            Allocator(dynamic_cast<FunctionAST*>(expr)->Body[i].get());
         }
         return;
     }

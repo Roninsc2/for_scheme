@@ -107,10 +107,10 @@ public:
 class CallExprAST : public ExprAST {
 public:
   std::string Callee;
-  std::vector< ExprAST* > Args;
+  std::vector<std::shared_ptr<ExprAST> > Args;
 
 public:
-  CallExprAST(const std::string &callee, std::vector< ExprAST* > &args)
+  CallExprAST(const std::string &callee, std::vector<std::shared_ptr<ExprAST> > &args)
     : Callee(callee), Args(args)
   {
       Type = AT_Func;
@@ -134,11 +134,11 @@ public:
 
 class CondExprAST : public ExprAST {
 public:
-    std::vector<ExprAST*> Tests;
-    std::vector<ExprAST*> Args;
+    std::vector<std::shared_ptr<ExprAST> > Tests;
+    std::vector<std::shared_ptr<ExprAST> > Args;
 
 public:
-  CondExprAST(std::vector<ExprAST*> expr, std::vector<ExprAST*> test)
+  CondExprAST(std::vector<std::shared_ptr<ExprAST> > expr, std::vector<std::shared_ptr<ExprAST> > test)
     : Tests(test), Args(expr)
   {
       Type = SAT_Cond;
@@ -147,10 +147,10 @@ public:
 
 class BeginExprAST : public ExprAST {
 public:
-    std::vector<ExprAST*> Args;
+    std::vector<std::shared_ptr<ExprAST> > Args;
 
 public:
-  BeginExprAST(std::vector<ExprAST*> exprs)
+  BeginExprAST(std::vector<std::shared_ptr<ExprAST> > exprs)
     : Args(exprs)
   {
       Type = SAT_Begin;
@@ -159,11 +159,11 @@ public:
 
 class LambdaExprAST : public ExprAST {
 public:
-    std::vector<IdentAST*> Idents;
-    std::vector<ExprAST*> Agrs;
+    std::vector<std::shared_ptr<IdentAST> > Idents;
+    std::vector<std::shared_ptr<ExprAST> > Agrs;
 
 public:
-  LambdaExprAST(std::vector<IdentAST*> idents, std::vector<ExprAST*> args)
+  LambdaExprAST(std::vector<std::shared_ptr<IdentAST> > idents, std::vector<std::shared_ptr<ExprAST> > args)
     : Idents(idents), Agrs(args)
   {
       Type = SAT_Lambda;
@@ -173,25 +173,25 @@ public:
 
 class PrototypeAST {
 public:
-  PrototypeAST(const std::string &name, const std::vector< IdentAST* > &args)
+  PrototypeAST(const std::string &name, const std::vector<std::shared_ptr<IdentAST> > &args)
     : Name(name), Args(args)
   {
   }
 public:
   std::string Name;
-  std::vector< IdentAST* > Args;
+  std::vector<std::shared_ptr<IdentAST> > Args;
 };
 
 
 class FunctionAST: public ExprAST {
 public:
-  FunctionAST(PrototypeAST* proto,  std::vector< ExprAST* > body)
+  FunctionAST(PrototypeAST* proto,  std::vector<std::shared_ptr<ExprAST> > body)
     : Proto(proto), Body(body)
   {
       Type = SAT_Define;
   }
 public:
   std::shared_ptr< PrototypeAST >Proto;
-  std::vector< ExprAST* >Body;
+  std::vector<std::shared_ptr<ExprAST> >Body;
 
 };

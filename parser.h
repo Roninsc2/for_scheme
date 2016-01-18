@@ -22,7 +22,7 @@ private:
     ExprAST* ParseLambdaFunc();
     ExprAST* ParseCondFunc();
     ExprAST* ParseBeginFunc();
-    CallExprAST* ConvertToPairAndList(std::vector< ExprAST* > expr);
+    CallExprAST* ConvertToPairAndList(std::vector< std::shared_ptr<ExprAST> > expr);
     bool IsCorrectPair();
     void Parse();
 

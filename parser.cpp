@@ -50,14 +50,14 @@ ExprAST* TParser::ParseCallExprAST()
     if (stdFunc.count(CurrentToken.value)) {
         return (this->*(stdFunc.at(CurrentToken.value)))();
     }
-    std::vector< ExprAST* > Args;
+    std::vector<std::shared_ptr<ExprAST> > Args;
 
     while(1) {
         GetNextToken();
         if (CurrentToken.state == State_Rbkt) {
             break;
         }
-        Args.push_back(GetExprType());
+        Args.push_back(std::shared_ptr<ExprAST>(GetExprType()));
     } ;
     return (new CallExprAST(Name, Args));
 }
@@ -117,11 +117,11 @@ ExprAST* TParser::GetExprType() {
 
 CallExprAST* TParser::ParseList() {
     GetNextToken();
-    std::vector< ExprAST* > expr;
+    std::vector<std::shared_ptr<ExprAST> > expr;
     if (CurrentToken.state == State_Rbkt) {
         return (new CallExprAST("list", expr));
     } else {
-        expr.push_back(GetExprTypeForList());
+        expr.push_back(std::shared_ptr<ExprAST>(GetExprTypeForList()));
         while (1) {
             GetNextToken();
             if (CurrentToken.state == State_Rbkt) {
@@ -134,7 +134,7 @@ CallExprAST* TParser::ParseList() {
                 }
 
             } else {
-                expr.push_back(GetExprTypeForList());
+                expr.push_back(std::shared_ptr<ExprAST>(GetExprTypeForList()));
             }
         }
         return (new CallExprAST("list", expr));
@@ -201,7 +201,7 @@ ExprAST* TParser::ParseDefineFunc()
     }
     GetNextToken();
     std::string name;
-    std::vector< IdentAST* > args;
+    std::vector<std::shared_ptr<IdentAST> > args;
     if (CurrentToken.state != State_Ident) {
         //error
     } else {
@@ -213,19 +213,19 @@ ExprAST* TParser::ParseDefineFunc()
             break;
         }
         if (CurrentToken.state == State_Ident) {
-            args.push_back(new IdentAST(CurrentToken.value));
+            args.push_back(std::shared_ptr<IdentAST>(new IdentAST(CurrentToken.value)));
         } else {
             //error
         }
     }
     PrototypeAST* proto = new PrototypeAST(name, args);
-    std::vector<ExprAST*> body;
+    std::vector<std::shared_ptr<ExprAST>> body;
     while(true) {
         GetNextToken();
         if (CurrentToken.state == State_Rbkt) {
             break;
         }
-        body.push_back(GetExprType());
+        body.push_back(std::shared_ptr<ExprAST>(GetExprType()));
     }
     return (new FunctionAST(proto, body));
 }
@@ -270,18 +270,18 @@ ExprAST* TParser::ParseBeginFunc()
 
 }
 
-CallExprAST* TParser::ConvertToPairAndList(std::vector< ExprAST *> expr) {
-    ExprAST* firstInCons = expr[expr.size()-1];
+CallExprAST* TParser::ConvertToPairAndList(std::vector<std::shared_ptr<ExprAST> > expr) {
+    std::shared_ptr<ExprAST> firstInCons = expr[expr.size()-1];
     expr.pop_back();
     CallExprAST* list = new CallExprAST("list", expr);
-    std::vector <ExprAST*> forCons;
+    std::vector<std::shared_ptr<ExprAST> > forCons;
     forCons.push_back(firstInCons);
     GetNextToken();
-    forCons.push_back(GetExprTypeForList());
+    forCons.push_back(std::shared_ptr<ExprAST>(GetExprTypeForList()));
     CallExprAST* cons = new CallExprAST("cons", forCons);
-    std::vector<ExprAST*> forAppend;
-    forAppend.push_back(list);
-    forAppend.push_back(cons);
+    std::vector<std::shared_ptr<ExprAST> > forAppend;
+    forAppend.push_back(std::shared_ptr<CallExprAST>(list));
+    forAppend.push_back(std::shared_ptr<CallExprAST>(cons));
     CallExprAST* append = new CallExprAST("append", forAppend);
     return append;
 }
