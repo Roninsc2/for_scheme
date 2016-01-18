@@ -25,7 +25,7 @@ TPairType* GetPairType(ExprType* expr) {
         return (new TPairTypeList(((ListType*)expr)->value.get()));
     }
     case T_Ident : {
-        return GetPairType(((IdentType*)expr)->value);
+        return GetPairType(((IdentType*)expr)->value.get());
     }
     default: {
         break;
@@ -157,7 +157,7 @@ ExprType* defineFun(std::vector<std::shared_ptr<ExprType>>* expr) {
     if (expr->size() < 2) {
         //error
     } else if (expr->at(0)->Type == T_Ident && expr->size() == 2) {
-        ((IdentType*)expr->at(0).get())->value = expr->at(1).get();
+        ((IdentType*)expr->at(0).get())->value.reset(expr->at(1).get());
     }
 }
 

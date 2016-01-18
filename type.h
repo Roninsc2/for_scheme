@@ -59,12 +59,11 @@ public:
         Type = T_Ident;
     }
     ~IdentType() {
-        delete value;
     }
 
 public:
     std::string name;
-    ExprType* value = nullptr;
+    std::shared_ptr<ExprType> value;
 };
 
 class StringType : public ExprType {

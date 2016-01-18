@@ -85,7 +85,7 @@ private:
 class TByteCodeCMDPushIdent: public TByteCodeCMD {
 public:
     TByteCodeCMDPushIdent(std::string val);
-    virtual void UpdateStack(std::vector<std::shared_ptr<ExprType>>& stack, std::map<std::string, IdentType* > definevar);
+    virtual void UpdateStack(std::vector<std::shared_ptr<ExprType>>& stack, std::map<std::string, std::shared_ptr<IdentType> > definevar);
 private:
     std::string value;
 };
@@ -93,8 +93,8 @@ private:
 class TByteCodeCMDIfElse: public TByteCodeCMD {
 public:
     TByteCodeCMDIfElse();
-    virtual void UpdateStack(std::vector<std::shared_ptr<ExprType>>& stack, std::vector<std::shared_ptr<ExprType>> allocator, std::map<std::string, IdentType* > definevar,
-                             std::map<std::string, FunctionType* > define, std::vector<std::shared_ptr<TByteCodeCMD>> command, size_t& it);
+    virtual void UpdateStack(std::vector<std::shared_ptr<ExprType>>& stack, std::vector<std::shared_ptr<ExprType>> allocator, std::map<std::string, std::shared_ptr<IdentType> > definevar,
+                             std::map<std::string, std::shared_ptr<FunctionType> > define, std::vector<std::shared_ptr<TByteCodeCMD>> command, size_t& it);
 private:
     void Skip(std::vector<std::shared_ptr<TByteCodeCMD>> command, size_t& it);
 };
@@ -102,7 +102,7 @@ private:
 class TByteCodeCMDDefine: public TByteCodeCMD {
 public:
     TByteCodeCMDDefine(std::string name, size_t sizeArgs, std::vector<std::string> identName);
-    virtual void UpdateStack(std::map<std::string, FunctionType* >& Define, std::vector<std::shared_ptr<TByteCodeCMD>> command, size_t& it);
+    virtual void UpdateStack(std::map<std::string, std::shared_ptr<FunctionType> >& Define, std::vector<std::shared_ptr<TByteCodeCMD>> command, size_t& it);
 private:
     std::map<std::string, IdentType*> args;
     std::string funcName;
@@ -111,8 +111,8 @@ private:
 class TByteCodeCMDCall: public TByteCodeCMD {
 public:
     TByteCodeCMDCall(std::string callee);
-    virtual void UpdateStack(std::vector<std::shared_ptr<ExprType>>& stack, std::vector<std::shared_ptr<ExprType>> allocator, std::map<std::string, IdentType* > definevar,
-                             std::map<std::string, FunctionType* > define, std::vector<std::shared_ptr<TByteCodeCMD>> command, size_t& it);
+    virtual void UpdateStack(std::vector<std::shared_ptr<ExprType>>& stack, std::vector<std::shared_ptr<ExprType>> allocator, std::map<std::string, std::shared_ptr<IdentType> > definevar,
+                             std::map<std::string, std::shared_ptr<FunctionType> > define, std::vector<std::shared_ptr<TByteCodeCMD>> command, size_t& it);
 private:
     std::string name;
     std::map<std::string, ExprType*(*)(std::vector< std::shared_ptr<ExprType> > *) > stdFuncMap;
@@ -121,8 +121,8 @@ private:
 class TByteCodeCMDTailCall: public TByteCodeCMD {
 public:
     TByteCodeCMDTailCall(std::string callee, size_t p);
-    virtual void UpdateStack(std::vector<std::shared_ptr<ExprType>> allocator, std::map<std::string, IdentType* > defineVar,
-                             std::map<std::string, FunctionType* > Define, std::vector<std::shared_ptr<TByteCodeCMD>> command, size_t& it);
+    virtual void UpdateStack(std::vector<std::shared_ptr<ExprType>> allocator, std::map<std::string, std::shared_ptr<IdentType> > defineVar,
+                             std::map<std::string, std::shared_ptr<FunctionType> > Define, std::vector<std::shared_ptr<TByteCodeCMD>> command, size_t& it);
 private:
     std::string name;
     size_t pos;

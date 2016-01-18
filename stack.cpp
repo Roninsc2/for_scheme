@@ -10,6 +10,7 @@ TStack::TStack(const std::string fileName) : byteCodeGen(new TByteCodeGen(fileNa
 
 TStack::~TStack()
 {
+
 }
 
 
