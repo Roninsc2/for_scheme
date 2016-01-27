@@ -1,9 +1,9 @@
 #pragma once
-
 #include "parser.h"
 #include <map>
 #include <sstream>
 #include "byte_code_cmd.h"
+#include "stack.h"
 
 
 class TByteCodeGen {
@@ -44,4 +44,6 @@ public:
         VT_BOOL = '5'
     };
     std::vector<std::shared_ptr<TByteCodeCMD>> command;
+    TStack Stack;
+    size_t it = 0;
 };

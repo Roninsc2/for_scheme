@@ -3,115 +3,72 @@
 #include <iterator>
 #include "scheme_std_lib.cpp"
 
-TByteCodeCMDPush::TByteCodeCMDPush(size_t valNum) {
+std::shared_ptr<ExprType> StackPop(TStack& Stack);
+
+TByteCodeCMDPush::TByteCodeCMDPush(size_t valNum, TStack& stack): Stack(stack) {
     Type = ECMD_PUSH;
     valueNumber = valNum;
 }
 
-void TByteCodeCMDPush::UpdateStack(std::vector<std::shared_ptr<ExprType>>& stack, std::vector<std::shared_ptr<ExprType>> allocator)
+void TByteCodeCMDPush::UpdateStack()
 {
-    stack.push_back(allocator.at(valueNumber));
+    Stack.stack.push_back(Stack.allocator.at(valueNumber));
 }
 
 
-TByteCodeCMDPushIdent::TByteCodeCMDPushIdent(std::string val) {
+TByteCodeCMDPushIdent::TByteCodeCMDPushIdent(std::string val, TStack& stack): Stack(stack) {
     Type = ECMD_PUSHIDENT;
     value = val;
 }
 
-void TByteCodeCMDPushIdent::UpdateStack(std::vector<std::shared_ptr<ExprType>>& stack, std::map<std::string, std::shared_ptr<IdentType> > defineVar)
+void TByteCodeCMDPushIdent::UpdateStack()
 {
-    stack.push_back(defineVar.at(value)->value);
+    Stack.stack.push_back(Stack.defineVar.at(value)->value);
 }
 
 
-TByteCodeCMDIfElse::TByteCodeCMDIfElse() {
+TByteCodeCMDIfElse::TByteCodeCMDIfElse(TStack& stack, std::vector<std::shared_ptr<TByteCodeCMD>>& cmd, size_t& IT)
+    : Stack(stack), command(cmd), it(IT)
+{
     Type = ECMD_IFELSE;
 }
 
-void TByteCodeCMDIfElse::UpdateStack(std::vector<std::shared_ptr<ExprType>>& stack, std::vector<std::shared_ptr<ExprType>> allocator, std::map<std::string, std::shared_ptr<IdentType> > defineVar,
-                                     std::map<std::string, std::shared_ptr<FunctionType> > Define, std::vector<std::shared_ptr<TByteCodeCMD>> command, size_t& it)
+void TByteCodeCMDIfElse::UpdateStack()
 {
     it++;
-    std::vector<std::shared_ptr<ExprType>> exprs;
-    switch (command[it]->Type) {
-    case ECMD_PUSH: {
-        dynamic_cast<TByteCodeCMDPush*>(command[it].get())->UpdateStack(exprs, allocator);
-        break;
-    }
-    case ECMD_PUSHIDENT: {
-        dynamic_cast<TByteCodeCMDPushIdent*>(command[it].get())->UpdateStack(exprs, defineVar);
-        break;
-    }
-    case ECMD_CALL: {
-        dynamic_cast<TByteCodeCMDCall*>(command[it].get())->UpdateStack(exprs, allocator, defineVar, Define, command, it);
-        break;
-    }
-    case ECMD_TAILCALL: {
-        dynamic_cast<TByteCodeCMDTailCall*>(command[it].get())->UpdateStack(allocator, defineVar, Define, command, it);
+    std::shared_ptr<ExprType> expr;
+    if (command[it]->Type == ECMD_TAILCALL) {
+        command[it]->UpdateStack();
         return;
-    }
-    default:
-        break;
+    } else {
+        command[it]->UpdateStack();
+        expr = StackPop(Stack);
     }
     it++;
-    if (exprs.at(0)->Type == T_Bool && !(dynamic_cast<BoolType*>(exprs.at(0).get())->value)) {
+    if (expr->Type == T_None || (expr->Type == T_Bool && !(dynamic_cast<BoolType*>(expr.get())->value))) {
         Skip(command, it);
         if (command.at(it)->Type == ECMD_ENDCALL) {
+            Stack.stack.push_back(std::shared_ptr<ExprType>(new NoneType()));
             return;
         } else {
-            switch (command[it]->Type) {
-            case ECMD_PUSH: {
-                dynamic_cast<TByteCodeCMDPush*>(command[it].get())->UpdateStack(exprs, allocator);
-                break;
-            }
-            case ECMD_PUSHIDENT: {
-                dynamic_cast<TByteCodeCMDPushIdent*>(command[it].get())->UpdateStack(exprs, defineVar);
-                break;
-            }
-            case ECMD_CALL: {
-                dynamic_cast<TByteCodeCMDCall*>(command[it].get())->UpdateStack(exprs, allocator, defineVar, Define, command, it);
-                break;
-            }
-            case ECMD_IFELSE: {
-                dynamic_cast<TByteCodeCMDIfElse*>(command[it].get())->UpdateStack(exprs, allocator, defineVar, Define, command, it);
-                break;
-            }
-            case ECMD_TAILCALL: {
-                dynamic_cast<TByteCodeCMDTailCall*>(command[it].get())->UpdateStack(allocator, defineVar, Define, command, it);
+            if (command[it]->Type == ECMD_TAILCALL) {
+                command[it]->UpdateStack();
                 return;
-            }
-            default:
-                break;
+            } else {
+                command[it]->UpdateStack();
+                expr = StackPop(Stack);
             }
         }
     } else {
-        switch (command[it]->Type) {
-        case ECMD_PUSH: {
-            dynamic_cast<TByteCodeCMDPush*>(command[it].get())->UpdateStack(exprs, allocator);
-            break;
-        }
-        case ECMD_PUSHIDENT: {
-            dynamic_cast<TByteCodeCMDPushIdent*>(command[it].get())->UpdateStack(exprs, defineVar);
-            break;
-        }
-        case ECMD_CALL: {
-            dynamic_cast<TByteCodeCMDCall*>(command[it].get())->UpdateStack(exprs, allocator, defineVar, Define, command, it);
-            break;
-        }
-        case ECMD_IFELSE: {
-            dynamic_cast<TByteCodeCMDIfElse*>(command[it].get())->UpdateStack(exprs, allocator, defineVar, Define, command, it);
-            break;
-        }
-        case ECMD_TAILCALL: {
-            dynamic_cast<TByteCodeCMDTailCall*>(command[it].get())->UpdateStack(allocator, defineVar, Define, command, it);
+        if (command[it]->Type == ECMD_TAILCALL) {
+            command[it]->UpdateStack();
             return;
-        }
-        default:
-            break;
+        } else {
+            command[it]->UpdateStack();
+            expr = StackPop(Stack);
         }
     }
-    stack.push_back(exprs.at(exprs.size()-1));
+    Stack.stack.push_back(expr);
     it++;
     if (command.at(it)->Type == ECMD_ENDCALL) {
         return;
@@ -120,7 +77,7 @@ void TByteCodeCMDIfElse::UpdateStack(std::vector<std::shared_ptr<ExprType>>& sta
     }
 }
 
-void TByteCodeCMDIfElse::Skip(std::vector<std::shared_ptr<TByteCodeCMD> > command, size_t &it)
+void TByteCodeCMDIfElse::Skip(std::vector<std::shared_ptr<TByteCodeCMD>> command, size_t &it)
 {
     if (command.at(it)->Type == ECMD_PUSH || command.at(it)->Type == ECMD_PUSHIDENT) {
         it++;
@@ -138,32 +95,34 @@ void TByteCodeCMDIfElse::Skip(std::vector<std::shared_ptr<TByteCodeCMD> > comman
 }
 
 
-TByteCodeCMDDefine::TByteCodeCMDDefine(std::string name, size_t size, std::vector<std::string> idents) {
+TByteCodeCMDDefine::TByteCodeCMDDefine(std::string name, size_t size, std::vector<std::string> idents, TStack& stack, std::vector<std::shared_ptr<TByteCodeCMD>>& cmd, size_t& IT)
+    : Stack(stack), command(cmd), it(IT)
+{
 
     Type = ECMD_DEFSTART;
     funcName = name;
-    size_t sizeArgs = size;
-    for (size_t i = 0; i < sizeArgs; i++) {
+    for (size_t i = 0; i < size; i++) {
         args.insert(std::make_pair(idents[i], new IdentType(idents[i])));
     }
 }
 
-void TByteCodeCMDDefine::UpdateStack(std::map<std::string, std::shared_ptr<FunctionType> >& Define, std::vector<std::shared_ptr<TByteCodeCMD>> command, size_t& it)
+void TByteCodeCMDDefine::UpdateStack()
 {
     PrototypeType* proto = new PrototypeType(funcName, args);
-    size_t start = it;
+    size_t start = it+1;
     while (it < command.size()) {
         it++;
         if ((ECommand)command[it]->Type == ECMD_ENDDEF) {
             size_t end = it;
-            Define.insert(std::make_pair(funcName ,std::shared_ptr<FunctionType>(new FunctionType(proto, start, end))));
+            Stack.defineFunc.insert(std::make_pair(funcName ,std::shared_ptr<FunctionType>(new FunctionType(proto, start, end))));
             break;
         }
     }
 }
 
 
-TByteCodeCMDCall::TByteCodeCMDCall(std::string callee)
+TByteCodeCMDCall::TByteCodeCMDCall(std::string callee, TStack& stack, std::vector<std::shared_ptr<TByteCodeCMD>>& cmd, size_t& IT)
+    : Stack(stack), command(cmd), it(IT)
 {
     Type = ECMD_CALL;
     name = callee;
@@ -178,8 +137,7 @@ TByteCodeCMDCall::TByteCodeCMDCall(std::string callee)
     stdFuncMap.insert(std::make_pair("define", &defineFun));
 }
 
-void TByteCodeCMDCall::UpdateStack(std::vector<std::shared_ptr<ExprType>>& Stack, std::vector<std::shared_ptr<ExprType>> allocator, std::map<std::string, std::shared_ptr<IdentType> > defineVar,
-                                   std::map<std::string, std::shared_ptr<FunctionType> > Define, std::vector<std::shared_ptr<TByteCodeCMD>> command, size_t& it)
+void TByteCodeCMDCall::UpdateStack()
 {
     std::vector<std::shared_ptr<ExprType>> exprs;
     while (it < command.size()) {
@@ -187,89 +145,53 @@ void TByteCodeCMDCall::UpdateStack(std::vector<std::shared_ptr<ExprType>>& Stack
         if (command[it]->Type == ECMD_ENDCALL) {
             break;
         }
-        switch (command[it]->Type) {
-        case ECMD_PUSH: {
-            dynamic_cast<TByteCodeCMDPush*>(command[it].get())->UpdateStack(exprs, allocator);
-            break;
-        }
-        case ECMD_PUSHIDENT: {
-            dynamic_cast<TByteCodeCMDPushIdent*>(command[it].get())->UpdateStack(exprs, defineVar);
-            break;
-        }
-        case ECMD_CALL: {
-            dynamic_cast<TByteCodeCMDCall*>(command[it].get())->UpdateStack(exprs, allocator, defineVar, Define, command, it);
-            break;
-        }
-        case ECMD_IFELSE: {
-            dynamic_cast<TByteCodeCMDIfElse*>(command[it].get())->UpdateStack(exprs, allocator, defineVar, Define, command, it);
-            break;
-        }
-        default:
-            break;
-        }
+        command[it]->UpdateStack();
+        exprs.push_back(StackPop(Stack));
     }
     if (name == "define") {
         IdentType* ident = (IdentType*)stdFuncMap.at(name)(&exprs);
-        defineVar.insert(std::make_pair(ident->name, std::shared_ptr<IdentType>(ident)));
+        Stack.defineVar.insert(std::make_pair(ident->name, std::shared_ptr<IdentType>(ident)));
     }
     if (stdFuncMap.count(name)) {
-        Stack.push_back(std::shared_ptr<ExprType>(stdFuncMap.at(name)(&exprs)));
-    } else if (Define.count(name)) {
-        if (exprs.size() == Define.at(name)->Proto->Args.size()) {
+        Stack.stack.push_back(std::shared_ptr<ExprType>(stdFuncMap.at(name)(&exprs)));
+    } else if (Stack.defineFunc.count(name)) {
+        if (exprs.size() == Stack.defineFunc.at(name)->Proto->Args.size()) {
             size_t j = 0;
-            std::vector<std::shared_ptr<ExprType>> result;
-            std::map<std::string, std::shared_ptr<IdentType> > defineVarBuffer = defineVar;
-            std::map<std::string, std::shared_ptr<FunctionType> > defineFuncBuffer = Define;
-            for (auto i = Define.at(name)->Proto->Args.begin(); i != Define.at(name)->Proto->Args.end(); i++) {
+            std::shared_ptr<ExprType> result;
+            std::map<std::string, std::shared_ptr<IdentType> > defineVarBuffer = Stack.defineVar;
+            std::map<std::string, std::shared_ptr<FunctionType> > defineFuncBuffer = Stack.defineFunc;
+            for (auto i = Stack.defineFunc.at(name)->Proto->Args.begin(); i != Stack.defineFunc.at(name)->Proto->Args.end(); i++) {
                 i->second->value.reset();
                 i->second->value = exprs.at(j);
-                if (defineVar.count(i->first)) {
-                    defineVar.erase(i->first);
+                if (Stack.defineVar.count(i->first)) {
+                    Stack.defineVar.erase(i->first);
                 }
-                defineVar.insert(std::make_pair(i->first,std::shared_ptr<IdentType>(i->second)));
+                Stack.defineVar.insert(std::make_pair(i->first,std::shared_ptr<IdentType>(i->second)));
                 j++;
             }
             size_t current_position = it;
-            it = Define.at(name)->Start;
-            while (it != Define.at(name)->End) {
-                switch ((ECommand)command[it]->Type) {
-                case ECMD_PUSH: {
-                    dynamic_cast<TByteCodeCMDPush*>(command[it].get())->UpdateStack(result, allocator);
-                    break;
-                }
-                case ECMD_PUSHIDENT: {
-                    dynamic_cast<TByteCodeCMDPushIdent*>(command[it].get())->UpdateStack(result, defineVar);
-                    break;
-                }
-                case ECMD_CALL: {
-                    dynamic_cast<TByteCodeCMDCall*>(command[it].get())->UpdateStack(result, allocator, defineVar, Define, command, it);
-                    break;
-                }
-                case ECMD_IFELSE: {
-                    dynamic_cast<TByteCodeCMDIfElse*>(command[it].get())->UpdateStack(result, allocator, defineVar, Define, command, it);
-                    break;
-                }
-                case ECMD_TAILCALL: {
-                    result.clear();
-                    dynamic_cast<TByteCodeCMDTailCall*>(command[it].get())->UpdateStack(allocator, defineVar, Define, command, it);
-                    break;
-                }
-                default:
-                    break;
+            it = Stack.defineFunc.at(name)->Start;
+            while (it < Stack.defineFunc.at(name)->End) {
+                if (command[it]->Type == ECMD_TAILCALL) {
+                    command[it]->UpdateStack();
+                } else {
+                    command[it]->UpdateStack();
+                    result = StackPop(Stack);
                 }
                 it++;
             }
             it = current_position;
-            defineVar = defineVarBuffer;
-            Define = defineFuncBuffer;
-            Stack.push_back(result.at(result.size()-1));
+            Stack.defineVar = defineVarBuffer;
+            Stack.defineFunc = defineFuncBuffer;
+            Stack.stack.push_back(result);
         }
 
     }
 }
 
 
-TByteCodeCMDTailCall::TByteCodeCMDTailCall(std::string callee, size_t p)
+TByteCodeCMDTailCall::TByteCodeCMDTailCall(std::string callee, size_t p, TStack& stack, std::vector<std::shared_ptr<TByteCodeCMD>>& cmd, size_t& IT)
+    : Stack(stack), command(cmd), it(IT)
 {
     Type = ECMD_TAILCALL;
     name = callee;
@@ -285,8 +207,7 @@ TByteCodeCMDTailCall::TByteCodeCMDTailCall(std::string callee, size_t p)
     stdFuncMap.insert(std::make_pair("define", &defineFun));
 }
 
-void TByteCodeCMDTailCall::UpdateStack(std::vector<std::shared_ptr<ExprType>> allocator, std::map<std::string, std::shared_ptr<IdentType> > defineVar,
-                                       std::map<std::string, std::shared_ptr<FunctionType> > Define, std::vector<std::shared_ptr<TByteCodeCMD>> command, size_t& it)
+void TByteCodeCMDTailCall::UpdateStack()
 {
     std::vector<std::shared_ptr<ExprType>> exprs;
     while (it < command.size()) {
@@ -294,30 +215,16 @@ void TByteCodeCMDTailCall::UpdateStack(std::vector<std::shared_ptr<ExprType>> al
         if (command[it]->Type == ECMD_ENDCALL) {
             break;
         }
-        switch (command[it]->Type) {
-        case ECMD_PUSH: {
-            dynamic_cast<TByteCodeCMDPush*>(command[it].get())->UpdateStack(exprs, allocator);
-            break;
-        }
-        case ECMD_PUSHIDENT: {
-            dynamic_cast<TByteCodeCMDPushIdent*>(command[it].get())->UpdateStack(exprs, defineVar);
-            break;
-        }
-        case ECMD_CALL: {
-            dynamic_cast<TByteCodeCMDCall*>(command[it].get())->UpdateStack(exprs, allocator, defineVar, Define, command, it);
-            break;
-        }
-        default:
-            break;
-        }
+        command[it]->UpdateStack();
+        exprs.push_back(StackPop(Stack));
     }
-    if (Define.count(name)) {
-        if (exprs.size() == Define.at(name)->Proto->Args.size()) {
+    if (Stack.defineFunc.count(name)) {
+        if (exprs.size() == Stack.defineFunc.at(name)->Proto->Args.size()) {
             size_t j = 0;
-            for (auto i = Define.at(name)->Proto->Args.begin(); i != Define.at(name)->Proto->Args.end(); i++) {
-                if (defineVar.count(i->first)) {
-                    defineVar.at(i->first)->value.reset();
-                    defineVar.at(i->first)->value = exprs.at(j);
+            for (auto i = Stack.defineFunc.at(name)->Proto->Args.begin(); i != Stack.defineFunc.at(name)->Proto->Args.end(); i++) {
+                if (Stack.defineVar.count(i->first)) {
+                    Stack.defineVar.at(i->first)->value.reset();
+                    Stack.defineVar.at(i->first)->value = exprs.at(j);
                 }
                 j++;
             }
@@ -327,71 +234,79 @@ void TByteCodeCMDTailCall::UpdateStack(std::vector<std::shared_ptr<ExprType>> al
 }
 
 
-TByteCodeCMDAllocInt::TByteCodeCMDAllocInt(int val)
+TByteCodeCMDAllocInt::TByteCodeCMDAllocInt(int val, TStack& stack) : Stack(stack)
 {
     Type = ECMD_AllOCINT;
     value = val;
 }
 
-void TByteCodeCMDAllocInt::UpdateStack(std::vector<std::shared_ptr<ExprType>> &allocator)
+void TByteCodeCMDAllocInt::UpdateStack()
 {
-    allocator.push_back(std::shared_ptr<ExprType>(new NumberIntType(value)));
+    Stack.allocator.push_back(std::shared_ptr<ExprType>(new NumberIntType(value)));
 }
 
 
-TByteCodeCMDAllocDouble::TByteCodeCMDAllocDouble(double val)
+TByteCodeCMDAllocDouble::TByteCodeCMDAllocDouble(double val, TStack& stack): Stack(stack)
 {
     Type = ECMD_AllOCDOUBLE;
     value = val;
 }
 
-void TByteCodeCMDAllocDouble::UpdateStack(std::vector<std::shared_ptr<ExprType>> &allocator)
+void TByteCodeCMDAllocDouble::UpdateStack()
 {
-    allocator.push_back(std::shared_ptr<ExprType>(new NumberDoubleType(value)));
+    Stack.allocator.push_back(std::shared_ptr<ExprType>(new NumberDoubleType(value)));
 }
 
-TByteCodeCMDAllocChar::TByteCodeCMDAllocChar(char val)
+TByteCodeCMDAllocChar::TByteCodeCMDAllocChar(char val, TStack& stack): Stack(stack)
 {
     Type = ECMD_AllOCCHAR;
     value = val;
 }
 
-void TByteCodeCMDAllocChar::UpdateStack(std::vector<std::shared_ptr<ExprType>> &allocator)
+void TByteCodeCMDAllocChar::UpdateStack()
 {
-    allocator.push_back(std::shared_ptr<ExprType>(new CharType(value)));
+    Stack.allocator.push_back(std::shared_ptr<ExprType>(new CharType(value)));
 }
 
-TByteCodeCMDAllocString::TByteCodeCMDAllocString(std::string val)
+TByteCodeCMDAllocString::TByteCodeCMDAllocString(std::string val, TStack& stack): Stack(stack)
 {
     Type = ECMD_AllOCSTRING;
     value = val;
 }
 
-void TByteCodeCMDAllocString::UpdateStack(std::vector<std::shared_ptr<ExprType>> &allocator)
+void TByteCodeCMDAllocString::UpdateStack()
 {
-    allocator.push_back(std::shared_ptr<ExprType>(new StringType(value)));
+    Stack.allocator.push_back(std::shared_ptr<ExprType>(new StringType(value)));
 }
 
-TByteCodeCMDAllocSymbol::TByteCodeCMDAllocSymbol(std::string val)
+TByteCodeCMDAllocSymbol::TByteCodeCMDAllocSymbol(std::string val, TStack& stack): Stack(stack)
 {
     Type = ECMD_AllOCSYMBOL;
     value = val;
 }
 
-void TByteCodeCMDAllocSymbol::UpdateStack(std::vector<std::shared_ptr<ExprType>> &allocator)
+void TByteCodeCMDAllocSymbol::UpdateStack()
 {
-    allocator.push_back(std::shared_ptr<ExprType>(new SymbolType(value)));
+    Stack.allocator.push_back(std::shared_ptr<ExprType>(new SymbolType(value)));
 }
 
-TByteCodeCMDAllocBool::TByteCodeCMDAllocBool(bool val)
+TByteCodeCMDAllocBool::TByteCodeCMDAllocBool(bool val, TStack& stack): Stack(stack)
 {
     Type = ECMD_AllOCBOOL;
     value = val;
 }
 
-void TByteCodeCMDAllocBool::UpdateStack(std::vector<std::shared_ptr<ExprType>> &allocator)
+void TByteCodeCMDAllocBool::UpdateStack()
 {
-    allocator.push_back(std::shared_ptr<ExprType>(new BoolType(value)));
+    Stack.allocator.push_back(std::shared_ptr<ExprType>(new BoolType(value)));
 }
 
-
+std::shared_ptr<ExprType> StackPop(TStack& Stack) {
+    if (Stack.stack.size()) {
+        std::shared_ptr<ExprType> expr = Stack.stack.at(Stack.stack.size()-1);
+        Stack.stack.pop_back();
+        return expr;
+    } else {
+        return std::shared_ptr<ExprType>(new NoneType());
+    }
+}
