@@ -36,8 +36,8 @@ class VList {
 public:
     VList(TPairTypePtr  val): list(new TPair(val, nullptr)){}
     ~VList(){}
-    void InsertAfter(VList* after);
-    void InsertBefore(VList* before);
+    void InsertAfter(std::shared_ptr<VList> after);
+    void InsertBefore(std::shared_ptr<VList> before);
     void DeleteList();
     void ConvetToPair(TPairType* val);
     size_t ListLength();
@@ -65,18 +65,17 @@ private:
 class TPairTypeList : public TPairType {
 
 public:
-    TPairTypeList(VList* val): value(val) {
+    TPairTypeList(std::shared_ptr<VList> val): value(val) {
         Type = PT_List;
     }
     ~TPairTypeList(){
-        delete value;
     }
 
-    VList* GetValue() {
+    std::shared_ptr<VList> GetValue() {
         return value;
     }
 private:
-    VList* value;
+     std::shared_ptr<VList> value;
 
 };
 

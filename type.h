@@ -146,13 +146,13 @@ public:
 
 class PrototypeType {
 public:
-    PrototypeType(const std::string &name, const std::map<std::string, IdentType*> &args)
+    PrototypeType(const std::string &name, const std::map<std::string, std::shared_ptr<IdentType>> &args)
         : Name(name), Args(args)
     {
     }
 public:
     std::string Name;
-    std::map<std::string, IdentType*> Args;
+    std::map<std::string, std::shared_ptr<IdentType>> Args;
 };
 
 

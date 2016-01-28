@@ -102,7 +102,7 @@ TByteCodeCMDDefine::TByteCodeCMDDefine(std::string name, size_t size, std::vecto
     Type = ECMD_DEFSTART;
     funcName = name;
     for (size_t i = 0; i < size; i++) {
-        args.insert(std::make_pair(idents[i], new IdentType(idents[i])));
+        args.insert(std::make_pair(idents[i], std::shared_ptr<IdentType>(new IdentType(idents[i]))));
     }
 }
 
@@ -149,11 +149,11 @@ void TByteCodeCMDCall::UpdateStack()
         exprs.push_back(StackPop(Stack));
     }
     if (name == "define") {
-        IdentType* ident = (IdentType*)stdFuncMap.at(name)(&exprs);
+        IdentType* ident = (IdentType*)stdFuncMap.at(name)(exprs);
         Stack.defineVar.insert(std::make_pair(ident->name, std::shared_ptr<IdentType>(ident)));
     }
     if (stdFuncMap.count(name)) {
-        Stack.stack.push_back(std::shared_ptr<ExprType>(stdFuncMap.at(name)(&exprs)));
+        Stack.stack.push_back(std::shared_ptr<ExprType>(stdFuncMap.at(name)(exprs)));
     } else if (Stack.defineFunc.count(name)) {
         if (exprs.size() == Stack.defineFunc.at(name)->Proto->Args.size()) {
             size_t j = 0;
@@ -166,7 +166,7 @@ void TByteCodeCMDCall::UpdateStack()
                 if (Stack.defineVar.count(i->first)) {
                     Stack.defineVar.erase(i->first);
                 }
-                Stack.defineVar.insert(std::make_pair(i->first,std::shared_ptr<IdentType>(i->second)));
+                Stack.defineVar.insert(std::make_pair(i->first, i->second));
                 j++;
             }
             size_t current_position = it;

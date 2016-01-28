@@ -2,12 +2,12 @@
 #include <iostream>
 
 
-void VList::InsertAfter(VList* after)
+void VList::InsertAfter(std::shared_ptr<VList> after)
 {
     TPair* last = list.get();
-    while (last->tail != nullptr) {
+    while (last->tail) {
         if (last->tail->GetType() == PT_List) {
-            last = ((TPairTypeList*)last->tail.get())->GetValue()->list.get();
+            last = dynamic_cast<TPairTypeList*>(last->tail.get())->GetValue()->list.get();
         } else {
             //error
         }
@@ -15,12 +15,12 @@ void VList::InsertAfter(VList* after)
     last->tail.reset(new TPairTypeList(after));
 }
 
-void VList::InsertBefore(VList* before)
+void VList::InsertBefore(std::shared_ptr<VList> before)
 {
     TPair* last = before->list.get();
-    while (last->tail != nullptr) {
+    while (last->tail) {
         if (last->tail->GetType() == PT_List) {
-            last = ((TPairTypeList*)last->tail.get())->GetValue()->list.get();
+            last = dynamic_cast<TPairTypeList*>(last->tail.get())->GetValue()->list.get();
         } else {
             //error;
         }
@@ -30,9 +30,9 @@ void VList::InsertBefore(VList* before)
 
 void VList::ConvetToPair(TPairType* val) {
     TPair* last = list.get();
-    while (last->tail != nullptr) {
+    while (last->tail) {
         if (last->tail->GetType() == PT_List) {
-            last = ((TPairTypeList*)last->tail.get())->GetValue()->list.get();
+            last = dynamic_cast<TPairTypeList*>(last->tail.get())->GetValue()->list.get();
         } else {
             //error;
         }
@@ -44,9 +44,9 @@ size_t VList::ListLength()
 {
     TPair* last = list.get();
     size_t count = 1;
-    while (last->tail != nullptr) {
+    while (last->tail) {
         if (last->tail->GetType() == PT_List) {
-            last = ((TPairTypeList*)last->tail.get())->GetValue()->list.get();
+            last = dynamic_cast<TPairTypeList*>(last->tail.get())->GetValue()->list.get();
         } else {
             //error
         }
@@ -58,7 +58,7 @@ size_t VList::ListLength()
 bool VList::isList()
 {
     TPair* last = list.get();
-    while (last->tail != nullptr) {
+    while (last->tail) {
         if (last->tail->GetType() != PT_List) {
             return false;
         }
@@ -70,31 +70,31 @@ void GetPairData(TPairType* expr)
 {
     switch(expr->Type) {
     case PT_Int: {
-        std::cout << ((TPairTypeInt*)expr)->GetValue() << " ";
+        std::cout << dynamic_cast<TPairTypeInt*>(expr)->GetValue() << " ";
         break;
     }
     case PT_Double: {
-        std::cout << ((TPairTypeDouble*)expr)->GetValue() << " ";
+        std::cout << dynamic_cast<TPairTypeDouble*>(expr)->GetValue() << " ";
         break;
     }
     case PT_Char: {
-        std::cout << ((TPairTypeChar*)expr)->GetValue() << " ";
+        std::cout << dynamic_cast<TPairTypeChar*>(expr)->GetValue() << " ";
         break;
     }
     case PT_String: {
-        std::cout << ((TPairTypeString*)expr)->GetValue() << " ";
+        std::cout << dynamic_cast<TPairTypeString*>(expr)->GetValue() << " ";
         break;
     }
     case PT_Symbol: {
-        std::cout << ((TPairTypeSymbol*)expr)->GetValue() << " ";
+        std::cout << dynamic_cast<TPairTypeSymbol*>(expr)->GetValue() << " ";
         break;
     }
     case PT_Bool: {
-        std::cout << ((TPairTypeBool*)expr)->GetValue() << " ";
+        std::cout << dynamic_cast<TPairTypeBool*>(expr)->GetValue() << " ";
         break;
     }
     case PT_List: {
-        ((TPairTypeList*)expr)->GetValue()->GetListData();
+        dynamic_cast<TPairTypeList*>(expr)->GetValue()->GetListData();
         break;
     }
     default:
@@ -106,7 +106,7 @@ void GetPairData(TPairType* expr)
 void VList::GetListData()
 {
     TPair* last = list.get();
-    if (last->head == nullptr && last->tail != nullptr) {
+    if (last->head == nullptr && last->tail) {
         GetPairData(last->tail.get());
         return;
     } else if (last->head == nullptr && last->tail == nullptr) {
@@ -114,10 +114,10 @@ void VList::GetListData()
        return;
     }
     std::cout << "( ";
-    while(last->tail != nullptr) {
+    while(last->tail) {
         GetPairData(last->head.get());
         if (last->tail->GetType() == PT_List) {
-            last = ((TPairTypeList*)last->tail.get())->GetValue()->list.get();
+            last = dynamic_cast<TPairTypeList*>(last->tail.get())->GetValue()->list.get();
         } else {
             std::cout << ". ";
             GetPairData(last->tail.get());

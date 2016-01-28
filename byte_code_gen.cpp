@@ -6,9 +6,11 @@ TByteCodeGen::TByteCodeGen(const std::string fileName): Parser(new TParser(fileN
     GenByteCode();
     while (it < command.size()) {
         command[it]->UpdateStack();
+        if (Stack.stack.size()) {
+            Stack.PrintResult();
+        }
         it++;
     }
-    Stack.PrintResult();
 }
 
 TByteCodeGen::~TByteCodeGen() {

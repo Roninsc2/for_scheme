@@ -117,7 +117,7 @@ public:
                        TStack& stack, std::vector<std::shared_ptr<TByteCodeCMD>>& cmd, size_t& IT);
     void UpdateStack();
 private:
-    std::map<std::string, IdentType*> args;
+    std::map<std::string, std::shared_ptr<IdentType>> args;
     std::string funcName;
     TStack& Stack;
     std::vector<std::shared_ptr<TByteCodeCMD>>& command;
@@ -133,7 +133,7 @@ private:
     TStack& Stack;
     std::vector<std::shared_ptr<TByteCodeCMD>>& command;
     size_t& it;
-    std::map<std::string, ExprType*(*)(std::vector< std::shared_ptr<ExprType> > *) > stdFuncMap;
+    std::map<std::string, ExprType*(*)(std::vector< std::shared_ptr<ExprType> >&) > stdFuncMap;
 };
 
 class TByteCodeCMDTailCall: public TByteCodeCMD {
@@ -146,7 +146,7 @@ private:
     TStack& Stack;
     std::vector<std::shared_ptr<TByteCodeCMD>>& command;
     size_t& it;
-    std::map<std::string, ExprType*(*)(std::vector<std::shared_ptr<ExprType> >*) > stdFuncMap;
+    std::map<std::string, ExprType*(*)(std::vector<std::shared_ptr<ExprType> >&) > stdFuncMap;
 };
 
 

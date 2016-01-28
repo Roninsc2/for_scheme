@@ -2,4 +2,5 @@
 	(if (= b 10)
 	    (+ b c)
 	    (aa (+ 1 b) c)))
-(aa 1 2)
+
+(append (cons 1 2 ) (list (aa 0 1)) (list (aa 0 2)) (list (aa 0 3)) (cons (aa 0 4) (aa 0 5)))
