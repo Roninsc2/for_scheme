@@ -116,6 +116,9 @@ public:
     ListType(VList* val) : value(val) {
         Type = T_List;
     }
+    ListType(std::shared_ptr<VList> val) : value(val) {
+        Type = T_List;
+    }
 
 public:
     std::shared_ptr<VList> value;

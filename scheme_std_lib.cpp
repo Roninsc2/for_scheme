@@ -61,25 +61,25 @@ ExprType* append(std::vector<std::shared_ptr<ExprType>>& expr) {
     if (!expr.size()) {
         return (new ListType(new VList(TPairTypePtr(nullptr))));
     }
-    TPairType* list = GetPairType(expr.at(0).get());
+    std::shared_ptr<TPairType> list(GetPairType(expr.at(0).get()));
     if (list->GetType() != PT_List) {
         //error
     }
     for (size_t i = 1; i < expr.size()-1; i++) {
-        TPairType* addList = GetPairType(expr.at(i).get());
+        std::shared_ptr<TPairType> addList(GetPairType(expr.at(i).get()));
         if (addList->GetType() != PT_List) {
             //error
         } else {
-            ((TPairTypeList*)list)->GetValue()->InsertAfter(((TPairTypeList*)addList)->GetValue());
+            ((TPairTypeList*)list.get())->GetValue()->InsertAfter(((TPairTypeList*)addList.get())->GetValue());
         }
     }
     TPairType* lType = GetPairType(expr.at(expr.size()-1).get());
     if (lType->GetType() == PT_List && ((TPairTypeList*)lType)->GetValue()->isList()) {
-        ((TPairTypeList*)list)->GetValue()->InsertAfter(((TPairTypeList*)lType)->GetValue());
+        ((TPairTypeList*)list.get())->GetValue()->InsertAfter(((TPairTypeList*)lType)->GetValue());
     } else {
-        ((TPairTypeList*)list)->GetValue()->ConvetToPair(lType);
+        ((TPairTypeList*)list.get())->GetValue()->ConvetToPair(lType);
     }
-    return (new ListType(((TPairTypeList*)list)->GetValue().get()));
+    return (new ListType(((TPairTypeList*)list.get())->GetValue()));
 }
 
 
