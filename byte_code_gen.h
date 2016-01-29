@@ -17,7 +17,7 @@ public:
     void GenDefineByteCode(ExprAST* expr, std::string name, size_t pos);
     void Allocator(ExprAST* value);
     void GenExprValue(ExprAST* expr);
-    size_t GenAllocatorValue(ExprAST* expr);
+    size_t GetAllocatorValue(ExprAST* expr);
     bool IsInAllocatorValue(ExprAST* epxr);
 private:
     std::shared_ptr< TParser > Parser;

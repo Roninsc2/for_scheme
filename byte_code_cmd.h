@@ -126,25 +126,26 @@ private:
 
 class TByteCodeCMDCall: public TByteCodeCMD {
 public:
-    TByteCodeCMDCall(std::string callee, TStack& stack, std::vector<std::shared_ptr<TByteCodeCMD>>& cmd, size_t& IT);
+    TByteCodeCMDCall(std::string callee, TStack& stack, size_t i, size_t& IT, std::vector<std::shared_ptr<TByteCodeCMD>>& Command);
     void UpdateStack();
 private:
     std::string name;
     TStack& Stack;
-    std::vector<std::shared_ptr<TByteCodeCMD>>& command;
+    size_t size;
     size_t& it;
+    std::vector<std::shared_ptr<TByteCodeCMD>>& command;
     std::map<std::string, ExprType*(*)(std::vector< std::shared_ptr<ExprType> >&) > stdFuncMap;
 };
 
 class TByteCodeCMDTailCall: public TByteCodeCMD {
 public:
-    TByteCodeCMDTailCall(std::string callee, size_t p, TStack& stack, std::vector<std::shared_ptr<TByteCodeCMD>>& cmd, size_t& IT);
+    TByteCodeCMDTailCall(std::string callee, size_t p, TStack& stack, size_t i, size_t& IT);
     void UpdateStack();
 private:
     std::string name;
     size_t pos;
     TStack& Stack;
-    std::vector<std::shared_ptr<TByteCodeCMD>>& command;
+    size_t size;
     size_t& it;
     std::map<std::string, ExprType*(*)(std::vector<std::shared_ptr<ExprType> >&) > stdFuncMap;
 };
@@ -159,7 +160,19 @@ public:
 
 class TByteCodeCMDEndDef: public TByteCodeCMD {
 public:
-    TByteCodeCMDEndDef() {
+    TByteCodeCMDEndDef(TStack& stack, size_t& IT): Stack(stack), it(IT)
+    {
         Type = ECMD_ENDDEF;
     }
+    void UpdateStack() {
+        Stack.defineFunc = defineFunctionBuffer;
+        Stack.defineVar = defineVaribleBuffer;
+        it = currentPos;
+    }
+
+    TStack& Stack;
+    size_t currentPos;
+    size_t& it;
+    std::map<std::string, std::shared_ptr<IdentType> > defineVaribleBuffer;
+    std::map<std::string, std::shared_ptr<FunctionType> > defineFunctionBuffer;
 };

@@ -40,8 +40,8 @@ ExprType* list(std::vector< std::shared_ptr<ExprType> >& exprs) {
     if (!exprs.size()) {
         return (new ListType(new VList(TPairTypePtr(nullptr))));
     } else {
-        VList* list = new VList(TPairTypePtr(GetPairType(exprs.at(0).get())));
-        for (size_t i = 1; i < exprs.size(); i++) {
+        VList* list = new VList(TPairTypePtr(GetPairType(exprs.at(exprs.size()-1).get())));
+        for (int i = exprs.size()-2; i >= 0; i--) {
             list->InsertAfter(std::shared_ptr<VList>(new VList(TPairTypePtr(GetPairType(exprs.at(i).get())))));
         }
         return (new ListType(list));
@@ -52,8 +52,8 @@ ExprType* cons(std::vector<std::shared_ptr<ExprType>>& expr) {
     if (!expr.size()) {
         return (new ListType(new VList(TPairTypePtr(nullptr))));
     }
-    VList* list = new VList(TPairTypePtr(GetPairType(expr.at(0).get())));
-    list->ConvetToPair(GetPairType(expr.at(1).get()));
+    VList* list = new VList(TPairTypePtr(GetPairType(expr.at(1).get())));
+    list->ConvetToPair(GetPairType(expr.at(0).get()));
     return (new ListType(list));
 }
 
@@ -61,11 +61,11 @@ ExprType* append(std::vector<std::shared_ptr<ExprType>>& expr) {
     if (!expr.size()) {
         return (new ListType(new VList(TPairTypePtr(nullptr))));
     }
-    std::shared_ptr<TPairType> list(GetPairType(expr.at(0).get()));
+    std::shared_ptr<TPairType> list(GetPairType(expr.at(expr.size()-1).get()));
     if (list->GetType() != PT_List) {
         //error
     }
-    for (size_t i = 1; i < expr.size()-1; i++) {
+    for (size_t i = expr.size()-2; i >= 1; i--) {
         std::shared_ptr<TPairType> addList(GetPairType(expr.at(i).get()));
         if (addList->GetType() != PT_List) {
             //error
@@ -73,7 +73,7 @@ ExprType* append(std::vector<std::shared_ptr<ExprType>>& expr) {
             ((TPairTypeList*)list.get())->GetValue()->InsertAfter(((TPairTypeList*)addList.get())->GetValue());
         }
     }
-    TPairType* lType = GetPairType(expr.at(expr.size()-1).get());
+    TPairType* lType = GetPairType(expr.at(0).get());
     if (lType->GetType() == PT_List && ((TPairTypeList*)lType)->GetValue()->isList()) {
         ((TPairTypeList*)list.get())->GetValue()->InsertAfter(((TPairTypeList*)lType)->GetValue());
     } else {
@@ -89,7 +89,7 @@ ExprType* plus(std::vector<std::shared_ptr<ExprType>>& expr) {
     if (!expr.size()) {
         //error
     } else {
-        for (size_t i = 0; i < expr.size(); i++) {
+        for (int i = expr.size()-1; i >= 0; i--) {
             if (expr.at(i)->Type == T_Int) {
                 result += dynamic_cast<NumberIntType*>(expr.at(i).get())->value;
             } else if (expr.at(i)->Type == T_Double) {
@@ -107,17 +107,17 @@ ExprType* minus(std::vector<std::shared_ptr<ExprType>>& expr) {
     if (!expr.size()) {
         //error
     } else if (expr.size() > 1){
-        if (expr.at(0)->Type == T_Int) {
-            result = dynamic_cast<NumberIntType*>(expr.at(0).get())->value;
-        } else if (expr.at(0)->Type == T_Double) {
-            result = dynamic_cast<NumberDoubleType*>(expr.at(0).get())->value;
+        if (expr.at(expr.size()-1)->Type == T_Int) {
+            result = dynamic_cast<NumberIntType*>(expr.at(expr.size()-1).get())->value;
+        } else if (expr.at(expr.size()-1)->Type == T_Double) {
+            result = dynamic_cast<NumberDoubleType*>(expr.at(expr.size()-1).get())->value;
         } else {
             //error
         }
-        for (size_t i = 1; i < expr.size(); i++) {
-            if (expr.at(0)->Type == T_Int) {
+        for (int i = expr.size()-2; i >= 0; i--) {
+            if (expr.at(i)->Type == T_Int) {
                 result -= dynamic_cast<NumberIntType*>(expr.at(i).get())->value;
-            } else if (expr.at(0)->Type == T_Double) {
+            } else if (expr.at(i)->Type == T_Double) {
                 result -= dynamic_cast<NumberDoubleType*>(expr.at(i).get())->value;
             } else {
                 //error
@@ -140,7 +140,7 @@ ExprType* mult(std::vector<std::shared_ptr<ExprType>>& expr) {
     if (!expr.size()) {
         //error
     } else {
-        for (size_t i = 0; i < expr.size(); i++) {
+        for (int i = expr.size()-1; i >= 0; i--) {
             if (expr.at(i)->Type == T_Int) {
                 result *= dynamic_cast<NumberIntType*>(expr.at(i).get())->value;
             } else if (expr.at(i)->Type == T_Double) {
@@ -156,8 +156,8 @@ ExprType* mult(std::vector<std::shared_ptr<ExprType>>& expr) {
 ExprType* defineFun(std::vector<std::shared_ptr<ExprType>>& expr) {
     if (expr.size() < 2) {
         //error
-    } else if (expr.at(0)->Type == T_Ident && expr.size() == 2) {
-        dynamic_cast<IdentType*>(expr.at(0).get())->value.reset(expr.at(1).get());
+    } else if (expr.at(1)->Type == T_Ident && expr.size() == 2) {
+        dynamic_cast<IdentType*>(expr.at(1).get())->value.reset(expr.at(0).get());
     }
 }
 
@@ -167,14 +167,14 @@ ExprType* division(std::vector<std::shared_ptr<ExprType>>& expr) {
     if (!expr.size()) {
         //error
     } else if (expr.size() > 1){
-        if (expr.at(0)->Type == T_Int) {
-            result = dynamic_cast<NumberIntType*>(expr.at(0).get())->value;
-        } else if (expr.at(0)->Type == T_Double) {
-            result = dynamic_cast<NumberDoubleType*>(expr.at(0).get())->value;
+        if (expr.at(expr.size()-1)->Type == T_Int) {
+            result = dynamic_cast<NumberIntType*>(expr.at(expr.size()-1).get())->value;
+        } else if (expr.at(expr.size()-1)->Type == T_Double) {
+            result = dynamic_cast<NumberDoubleType*>(expr.at(expr.size()-1).get())->value;
         } else {
             //error
         }
-        for (size_t i = 1; i < expr.size(); i++) {
+        for (int i = expr.size()-2; i >= 0; i--) {
             if (expr.at(i)->Type == T_Int) {
                 result /= dynamic_cast<NumberIntType*>(expr.at(i).get())->value;
             } else if (expr.at(i)->Type == T_Double) {
@@ -200,14 +200,14 @@ ExprType* equally(std::vector<std::shared_ptr<ExprType>>& expr) {
         //error
     } else {
         double result;
-        if (expr.at(0)->Type == T_Int) {
-            result = dynamic_cast<NumberIntType*>(expr.at(0).get())->value;
-        } else if (expr.at(0)->Type == T_Double) {
-            result = dynamic_cast<NumberDoubleType*>(expr.at(0).get())->value;
+        if (expr.at(expr.size()-1)->Type == T_Int) {
+            result = dynamic_cast<NumberIntType*>(expr.at(expr.size()-1).get())->value;
+        } else if (expr.at(expr.size()-1)->Type == T_Double) {
+            result = dynamic_cast<NumberDoubleType*>(expr.at(expr.size()-1).get())->value;
         } else {
             //error
         }
-        for (size_t i = 1; i < expr.size(); i++) {
+        for (int i = expr.size()-2; i >= 0; i--) {
             if (expr.at(i)->Type == T_Int && dynamic_cast<NumberIntType*>(expr.at(i).get())->value != result) {
                 return (new BoolType(false));
             } else if (expr.at(i)->Type == T_Double && dynamic_cast<NumberDoubleType*>(expr.at(i).get())->value != result) {
