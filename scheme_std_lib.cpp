@@ -73,11 +73,11 @@ ExprType* append(std::vector<std::shared_ptr<ExprType>>& expr) {
             ((TPairTypeList*)list.get())->GetValue()->InsertAfter(((TPairTypeList*)addList.get())->GetValue());
         }
     }
-    TPairType* lType = GetPairType(expr.at(0).get());
-    if (lType->GetType() == PT_List && ((TPairTypeList*)lType)->GetValue()->isList()) {
-        ((TPairTypeList*)list.get())->GetValue()->InsertAfter(((TPairTypeList*)lType)->GetValue());
+    std::shared_ptr<TPairType> lType(GetPairType(expr.at(0).get()));
+    if (lType->GetType() == PT_List && ((TPairTypeList*)lType.get())->GetValue()->isList()) {
+        ((TPairTypeList*)list.get())->GetValue()->InsertAfter(((TPairTypeList*)lType.get())->GetValue());
     } else {
-        ((TPairTypeList*)list.get())->GetValue()->ConvetToPair(lType);
+        ((TPairTypeList*)list.get())->GetValue()->ConvetToPair(lType.get());
     }
     return (new ListType(((TPairTypeList*)list.get())->GetValue()));
 }
