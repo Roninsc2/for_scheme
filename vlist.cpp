@@ -61,6 +61,8 @@ bool VList::isList()
     while (last->tail) {
         if (last->tail->GetType() != PT_List) {
             return false;
+        } else {
+            last = dynamic_cast<TPairTypeList*>(last->tail.get())->GetValue()->list.get();
         }
     }
     return true;

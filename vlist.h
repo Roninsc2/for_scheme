@@ -43,7 +43,7 @@ public:
     size_t ListLength();
     bool isList();
     void GetListData();
-private:
+public:
     std::shared_ptr<TPair> list;
 };
 

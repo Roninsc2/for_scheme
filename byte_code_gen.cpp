@@ -5,7 +5,7 @@ TByteCodeGen::TByteCodeGen(const std::string fileName): Parser(new TParser(fileN
 {
     GenByteCode();
     while (it < command.size()) {
-        command[it]->UpdateStack();
+        command[it]->UpdateStack(Stack);
         it++;
     }
     if (Stack.stack.size()) {
@@ -31,11 +31,11 @@ void TByteCodeGen::GenByteCode()
             for (size_t j = 0; j < currentDefine->Proto->Args.size(); j++) {
                 args.push_back(currentDefine->Proto->Args[j]->name);
             }
-            command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDDefine(currentDefine->Proto->Name, currentDefine->Proto->Args.size(), args, Stack, command, it)));
+            command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDDefine(currentDefine->Proto->Name, currentDefine->Proto->Args.size(), args, command, it)));
             for (size_t j = 0; j < currentDefine->Body.size(); j++) {
                 GenDefineByteCode(currentDefine->Body[j].get(), currentDefine->Proto->Name, command.size());
             }
-            command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDEndDef(Stack, it)));
+            command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDEndDef(it)));
         }
     }
 }
@@ -45,7 +45,7 @@ void TByteCodeGen::GenFuncByteCode(CallExprAST* func)
     for (size_t i = 0; i < func->Args.size(); i++) {
         GenExprValue(func->Args[i].get());
     }
-    command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDCall(func->Callee, Stack,  func->Args.size(), it, command)));
+    command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDCall(func->Callee, func->Args.size(), it, command)));
 }
 
 
@@ -54,13 +54,13 @@ void TByteCodeGen::GenTaliCallByteCode(CallExprAST *func, size_t pos)
     for (size_t i = 0; i < func->Args.size(); i++) {
         GenExprValue(func->Args[i].get());
     }
-    command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDTailCall(func->Callee, pos, Stack,  func->Args.size(), it)));
+    command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDTailCall(func->Callee, pos, func->Args.size(), it)));
 }
 
 void TByteCodeGen::GenIfElseByteCode(IfElseExprAST *expr,  size_t pos, std::string name)
 {
     if (!name.size()) {
-            command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDIfElse(Stack, command, it)));
+            command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDIfElse(command, it)));
             GenExprValue(expr->test.get());
             command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDEndCall()));
             GenExprValue(expr->first.get());
@@ -70,7 +70,7 @@ void TByteCodeGen::GenIfElseByteCode(IfElseExprAST *expr,  size_t pos, std::stri
             }
             command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDEndCall()));
         } else {
-            command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDIfElse(Stack, command, it)));
+            command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDIfElse(command, it)));
             GenDefineByteCode(expr->test.get(), name, pos);
             command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDEndCall()));
             GenDefineByteCode(expr->first.get(), name, pos);
@@ -113,27 +113,27 @@ void TByteCodeGen::Allocator(ExprAST* expr)
     }
     switch (expr->Type) {
     case AT_Int: {
-        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocInt(dynamic_cast<NumberIntAST*>(expr)->value, Stack)));
+        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocInt(dynamic_cast<NumberIntAST*>(expr)->value)));
         return;
     }
     case AT_Double : {
-        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocDouble(dynamic_cast<NumberDoubleAST*>(expr)->value, Stack)));
+        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocDouble(dynamic_cast<NumberDoubleAST*>(expr)->value)));
         return;
     }
     case AT_String : {
-        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocString(dynamic_cast<StringAST*>(expr)->value, Stack)));
+        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocString(dynamic_cast<StringAST*>(expr)->value)));
         return;
     }
     case AT_Symbol : {
-        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocSymbol(dynamic_cast<SymbolAST*>(expr)->value, Stack)));
+        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocSymbol(dynamic_cast<SymbolAST*>(expr)->value)));
         return;
     }
     case AT_Char : {
-        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocChar(dynamic_cast<CharAST*>(expr)->value, Stack)));
+        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocChar(dynamic_cast<CharAST*>(expr)->value)));
         return;
     }
     case AT_Bool : {
-        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocBool(dynamic_cast<BoolAST*>(expr)->value, Stack)));
+        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocBool(dynamic_cast<BoolAST*>(expr)->value)));
         return;
     }
     case SAT_IfElse: {
@@ -168,7 +168,7 @@ void TByteCodeGen::Allocator(ExprAST* expr)
 void TByteCodeGen::GenExprValue(ExprAST *expr) {
     switch (expr->Type) {
     case AT_Ident : {
-        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDPushIdent(dynamic_cast<IdentAST*>(expr)->name, Stack)));
+        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDPushIdent(dynamic_cast<IdentAST*>(expr)->name)));
         return;
     }
     case SAT_IfElse: {
@@ -180,7 +180,7 @@ void TByteCodeGen::GenExprValue(ExprAST *expr) {
         return;
     }
     default: {
-        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDPush(GetAllocatorValue(expr), Stack)));
+        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDPush(GetAllocatorValue(expr))));
         return;
     }
     }
