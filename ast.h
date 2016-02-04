@@ -160,11 +160,12 @@ public:
 class LambdaExprAST : public ExprAST {
 public:
     std::vector<std::shared_ptr<IdentAST> > Idents;
-    std::vector<std::shared_ptr<ExprAST> > Agrs;
+    std::vector<std::shared_ptr<ExprAST> > Args;
+    std::vector<std::shared_ptr<ExprAST> >Body;
 
 public:
-  LambdaExprAST(std::vector<std::shared_ptr<IdentAST> > idents, std::vector<std::shared_ptr<ExprAST> > args)
-    : Idents(idents), Agrs(args)
+  LambdaExprAST(std::vector<std::shared_ptr<IdentAST> > idents, std::vector<std::shared_ptr<ExprAST> > args, std::vector<std::shared_ptr<ExprAST> > body)
+    : Idents(idents), Args(args), Body(body)
   {
       Type = SAT_Lambda;
   }

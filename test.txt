@@ -1,6 +1,7 @@
-(define (aa b)
-	(if (= b 10)
-	    (+ 100 b)
-	    (aa (+ b 1))))
-
-(append (list (aa 1)) (list (aa 2)) (list (aa 0)))
+(define (fact n)
+	(define (help n x)
+		(if (= n 1)
+		    x
+		    (help (- n 1) (* x n))))
+	(help n 1))
+(fact 4)

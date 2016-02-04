@@ -111,12 +111,17 @@ void TByteCodeCMDDefine::UpdateStack(TStack& Stack)
 {
     PrototypeType* proto = new PrototypeType(funcName, args);
     size_t start = it;
+    size_t count = 0;
     while (it < command.size()) {
         it++;
-        if (dynamic_cast<TByteCodeCMDEndDef*>(command[it].get())) {
+        if (count && dynamic_cast<TByteCodeCMDEndDef*>(command[it].get())) {
+            count--;
+        } else if (!count && dynamic_cast<TByteCodeCMDEndDef*>(command[it].get())) {
             size_t end = it;
             Stack.defineFunc.insert(std::make_pair(funcName ,std::shared_ptr<FunctionType>(new FunctionType(proto, start, end))));
             break;
+        } else if (dynamic_cast<TByteCodeCMDDefine*>(command[it].get())) {
+            count++;
         }
     }
 }
@@ -194,6 +199,9 @@ TByteCodeCMDTailCall::TByteCodeCMDTailCall(std::string callee, size_t p, size_t 
 
 void TByteCodeCMDTailCall::UpdateStack(TStack& Stack)
 {
+    if (size > Stack.stack.size()) {
+        return;
+    }
     std::vector<std::shared_ptr<ExprType>> exprs;
     for (size_t i = 0; i < size; i++) {
         exprs.push_back(StackPop(Stack));
@@ -279,4 +287,38 @@ std::shared_ptr<ExprType> StackPop(TStack& Stack) {
     std::shared_ptr<ExprType> expr = Stack.stack.at(Stack.stack.size()-1);
     Stack.stack.pop_back();
     return expr;
+}
+
+TByteCodeCMDLambda::TByteCodeCMDLambda(std::vector<std::string> idents, std::vector<std::shared_ptr<TByteCodeCMD>>& cmd): command(cmd)
+{
+    for (size_t i = 0; i < idents.size(); i++) {
+        args.insert(std::make_pair(idents[i], std::shared_ptr<IdentType>(new IdentType(idents[i]))));
+    }
+}
+
+void TByteCodeCMDLambda::UpdateStack(TStack &Stack)
+{
+    size_t size = args.size();
+    if (size > Stack.stack.size()) {
+        return;
+    }
+    std::vector<std::shared_ptr<ExprType>> exprs;
+    for (size_t i = 0; i < size; i++) {
+        exprs.push_back(StackPop(Stack));
+    }
+    size_t j = exprs.size()-1;
+    std::map<std::string, std::shared_ptr<IdentType> > defineVarBuffer = Stack.defineVar;
+    std::map<std::string, std::shared_ptr<FunctionType> > defineFuncBuffer = Stack.defineFunc;
+    for (auto i = args.begin(); i != args.end(); i++) {
+        i->second->value.reset();
+        i->second->value = exprs.at(j);
+        if (Stack.defineVar.count(i->first)) {
+            Stack.defineVar.erase(i->first);
+        }
+        Stack.defineVar.insert(std::make_pair(i->first, i->second));
+        j--;
+    }
+    TByteCodeCMDEndLambda* endLambda = dynamic_cast<TByteCodeCMDEndLambda*>(command[end].get());
+    endLambda->defineFunctionBuffer = defineFuncBuffer;
+    endLambda->defineVaribleBuffer = defineVarBuffer;
 }

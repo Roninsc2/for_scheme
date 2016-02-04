@@ -85,6 +85,16 @@ private:
     void Skip(std::vector<std::shared_ptr<TByteCodeCMD>> command, size_t& IT);
 };
 
+class TByteCodeCMDLambda: public TByteCodeCMD {
+public:
+    TByteCodeCMDLambda(std::vector<std::string> agrs, std::vector<std::shared_ptr<TByteCodeCMD>>& cmd);
+    void UpdateStack(TStack& Stack);
+    size_t end;
+private:
+    std::vector<std::shared_ptr<TByteCodeCMD>>& command;
+    std::map<std::string, std::shared_ptr<IdentType>> args;
+};
+
 class TByteCodeCMDDefine: public TByteCodeCMD {
 public:
     TByteCodeCMDDefine(std::string name, size_t sizeArgs, std::vector<std::string> identName,
@@ -141,6 +151,19 @@ public:
     }
     std::vector<size_t> currentPos;
     size_t& it;
+    std::map<std::string, std::shared_ptr<IdentType> > defineVaribleBuffer;
+    std::map<std::string, std::shared_ptr<FunctionType> > defineFunctionBuffer;
+};
+
+class TByteCodeCMDEndLambda: public TByteCodeCMD {
+public:
+    TByteCodeCMDEndLambda()
+    {
+    }
+    void UpdateStack(TStack& Stack) {
+        Stack.defineFunc = defineFunctionBuffer;
+        Stack.defineVar = defineVaribleBuffer;
+    }
     std::map<std::string, std::shared_ptr<IdentType> > defineVaribleBuffer;
     std::map<std::string, std::shared_ptr<FunctionType> > defineFunctionBuffer;
 };

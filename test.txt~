@@ -1,6 +1,0 @@
-(define (aa b)
-	(if (= b 10)
-	    (+ 100 b)
-	    (aa (+ b 1))))
-
-(append (list (aa 1)) (list (aa 2)) (list (aa 0)))

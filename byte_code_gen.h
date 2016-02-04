@@ -13,8 +13,10 @@ public:
     void GenByteCode();
     void GenFuncByteCode(CallExprAST* func);
     void GenIfElseByteCode(IfElseExprAST* expr, size_t pos = 0,  std::string name = "");
+    void GenLambdaByteCode(LambdaExprAST* expr, size_t pos = 0,  std::string name = "");
     void GenTaliCallByteCode(CallExprAST* func, size_t pos);
     void GenDefineByteCode(ExprAST* expr, std::string name, size_t pos);
+    void GenDefine(ExprAST* expr);
     void Allocator(ExprAST* value);
     void GenExprValue(ExprAST* expr);
     size_t GetAllocatorValue(ExprAST* expr);

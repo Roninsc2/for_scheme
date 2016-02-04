@@ -111,7 +111,7 @@ ExprAST* TParser::GetExprType() {
     }
     default:
         throw new ParserExceptionIncorrectToken("cannot identify token type");
-        break;//error
+        break;
     }
 }
 
@@ -203,7 +203,7 @@ ExprAST* TParser::ParseDefineFunc()
     std::string name;
     std::vector<std::shared_ptr<IdentAST> > args;
     if (CurrentToken.state != State_Ident) {
-        //error
+        throw new ParserExceptionIncorrectToken(CurrentToken.value);
     } else {
         name = CurrentToken.value;
     }
@@ -215,7 +215,7 @@ ExprAST* TParser::ParseDefineFunc()
         if (CurrentToken.state == State_Ident) {
             args.push_back(std::shared_ptr<IdentAST>(new IdentAST(CurrentToken.value)));
         } else {
-            //error
+            throw new ParserExceptionIncorrectToken(CurrentToken.value);
         }
     }
     PrototypeAST* proto = new PrototypeAST(name, args);
@@ -257,7 +257,41 @@ ExprAST* TParser::ParseIfElseFunc()
 
 ExprAST* TParser::ParseLambdaFunc()
 {
-
+    GetNextToken();
+    if (CurrentToken.state != State_Lbkt) {
+        throw new ParserExceptionIncorrectToken("lambda incoorect at parser 262");
+    }
+    std::vector<std::shared_ptr<IdentAST> > Idents;
+    while (true) {
+        GetNextToken();
+        if (CurrentToken.state == State_Rbkt) {
+            break;
+        }
+        if (CurrentToken.state == State_Ident) {
+            Idents.push_back(std::shared_ptr<IdentAST>(new IdentAST(CurrentToken.value)));
+        } else {
+            throw new ParserExceptionIncorrectToken("lambda incoorect at parser 273");
+        }
+    }
+    std::vector<std::shared_ptr<ExprAST>> body;
+    while (true) {
+        GetNextToken();
+        if (CurrentToken.state == State_Rbkt) {
+            break;
+        }
+        body.push_back(std::shared_ptr<ExprAST>(GetExprType()));
+    }
+    std::vector<std::shared_ptr<ExprAST>> args;
+    if (Lexer->Tokens[i+Idents.size()].state == State_Rbkt) {
+        while(true) {
+            GetNextToken();
+            if (CurrentToken.state == State_Rbkt) {
+                break;
+            }
+            args.push_back(std::shared_ptr<ExprAST>(GetExprType()));
+        }
+    }
+    return new LambdaExprAST(Idents, args, body);
 }
 
 ExprAST* TParser::ParseCondFunc()

@@ -26,16 +26,7 @@ void TByteCodeGen::GenByteCode()
         if (Parser->root[i]->Type != SAT_Define) {
             GenExprValue(Parser->root[i].get());
         } else {
-            FunctionAST* currentDefine = dynamic_cast<FunctionAST*>(Parser->root[i].get());
-            std::vector<std::string> args;
-            for (size_t j = 0; j < currentDefine->Proto->Args.size(); j++) {
-                args.push_back(currentDefine->Proto->Args[j]->name);
-            }
-            command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDDefine(currentDefine->Proto->Name, currentDefine->Proto->Args.size(), args, command, it)));
-            for (size_t j = 0; j < currentDefine->Body.size(); j++) {
-                GenDefineByteCode(currentDefine->Body[j].get(), currentDefine->Proto->Name, command.size());
-            }
-            command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDEndDef(it)));
+            GenDefine(Parser->root[i].get());
         }
     }
 }
@@ -79,7 +70,32 @@ void TByteCodeGen::GenIfElseByteCode(IfElseExprAST *expr,  size_t pos, std::stri
                 GenDefineByteCode(expr->second.get(), name, pos);
             }
             command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDEndCall()));
+    }
+}
+
+void TByteCodeGen::GenLambdaByteCode(LambdaExprAST *expr, size_t pos, std::string name)
+{
+    std::vector<std::string> args;
+    for (size_t j = 0; j < expr->Idents.size(); j++) {
+        args.push_back(expr->Idents[j]->name);
+    }
+    for (size_t i = 0; i < expr->Args.size(); i++) {
+        GenExprValue(expr->Args.at(i).get());
+    }
+    command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDLambda(args, command)));
+    size_t k = command.size()-1;
+    if (!name.size()) {
+        for (size_t i = 0; i < expr->Body.size(); i++) {
+            GenExprValue(expr->Body[i].get());
         }
+    } else {
+        for (size_t i = 0; i < expr->Body.size(); i++) {
+            GenDefineByteCode(expr->Body[i].get(), name, pos);
+        }
+    }
+    command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDEndLambda()));
+    size_t m = command.size()-1;
+    dynamic_cast<TByteCodeCMDLambda*>(command.at(k).get())->end = m;
 }
 
 void TByteCodeGen::GenDefineByteCode(ExprAST* expr, std::string name, size_t pos)
@@ -87,6 +103,14 @@ void TByteCodeGen::GenDefineByteCode(ExprAST* expr, std::string name, size_t pos
     switch (expr->Type){
     case SAT_IfElse: {
         GenIfElseByteCode(dynamic_cast<IfElseExprAST*>(expr), pos, name);
+        return;
+    }
+    case SAT_Lambda: {
+        GenLambdaByteCode(dynamic_cast<LambdaExprAST*>(expr), pos, name);
+        return;
+    }
+    case SAT_Define: {
+        GenDefine(expr);
         return;
     }
     case AT_Func: {
@@ -103,12 +127,26 @@ void TByteCodeGen::GenDefineByteCode(ExprAST* expr, std::string name, size_t pos
     }
 }
 
+void TByteCodeGen::GenDefine(ExprAST *expr)
+{
+    FunctionAST* currentDefine = dynamic_cast<FunctionAST*>(expr);
+    std::vector<std::string> args;
+    for (size_t j = 0; j < currentDefine->Proto->Args.size(); j++) {
+        args.push_back(currentDefine->Proto->Args[j]->name);
+    }
+    command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDDefine(currentDefine->Proto->Name, currentDefine->Proto->Args.size(), args, command, it)));
+    for (size_t j = 0; j < currentDefine->Body.size(); j++) {
+        GenDefineByteCode(currentDefine->Body[j].get(), currentDefine->Proto->Name, command.size());
+    }
+    command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDEndDef(it)));
+}
+
 void TByteCodeGen::Allocator(ExprAST* expr)
 {
     if (IsInAllocatorValue(expr)) {
         return;
     }
-    if (expr->Type != AT_Func && expr->Type != AT_Ident && expr->Type != SAT_Define && expr->Type != SAT_IfElse && !IsInAllocatorValue(expr)){
+    if (expr->Type != AT_Func && expr->Type != AT_Ident && expr->Type != SAT_Define && expr->Type != SAT_IfElse && expr->Type != SAT_Lambda && !IsInAllocatorValue(expr)){
         allocatorValue.insert(std::make_pair(expr, allocatorValue.size()));
     }
     switch (expr->Type) {
@@ -141,6 +179,17 @@ void TByteCodeGen::Allocator(ExprAST* expr)
         Allocator(dynamic_cast<IfElseExprAST*>(expr)->first.get());
         if (dynamic_cast<IfElseExprAST*>(expr)->second) {
             Allocator(dynamic_cast<IfElseExprAST*>(expr)->second.get());
+        }
+        return;
+    }
+    case SAT_Lambda: {
+        size_t sizeArgs = dynamic_cast<LambdaExprAST*>(expr)->Args.size();
+        size_t sizeBody = dynamic_cast<LambdaExprAST*>(expr)->Body.size();
+        for (size_t i = 0; i < sizeArgs; i++) {
+            Allocator(dynamic_cast<LambdaExprAST*>(expr)->Args[i].get());
+        }
+        for (size_t i = 0; i < sizeBody; i++) {
+            Allocator(dynamic_cast<LambdaExprAST*>(expr)->Body[i].get());
         }
         return;
     }
@@ -177,6 +226,14 @@ void TByteCodeGen::GenExprValue(ExprAST *expr) {
     }
     case AT_Func : {
         GenFuncByteCode(dynamic_cast<CallExprAST*>(expr));
+        return;
+    }
+    case SAT_Define: {
+        GenDefine(expr);
+        return;
+    }
+    case SAT_Lambda: {
+        GenLambdaByteCode(dynamic_cast<LambdaExprAST*>(expr));
         return;
     }
     default: {
