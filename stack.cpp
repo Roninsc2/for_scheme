@@ -8,6 +8,7 @@ TStack::TStack()
 
 TStack::~TStack()
 {
+
 }
 
 void TStack::PrintResult()

@@ -69,20 +69,19 @@ private:
 
 class TByteCodeCMDPushIdent: public TByteCodeCMD {
 public:
-    TByteCodeCMDPushIdent(std::string val);
+    TByteCodeCMDPushIdent(std::string val, Enviroment& defineParent);
     void UpdateStack(TStack& Stack);
 private:
+    Enviroment& defineParent;
     std::string value;
 };
 
 class TByteCodeCMDIfElse: public TByteCodeCMD {
 public:
-    TByteCodeCMDIfElse(std::vector<std::shared_ptr<TByteCodeCMD>>& cmd, size_t& IT);
+    TByteCodeCMDIfElse(size_t& IT);
     void UpdateStack(TStack& Stack);
 private:
-    std::vector<std::shared_ptr<TByteCodeCMD>>& command;
     size_t& it;
-    void Skip(std::vector<std::shared_ptr<TByteCodeCMD>> command, size_t& IT);
 };
 
 class TByteCodeCMDLambda: public TByteCodeCMD {
@@ -97,11 +96,14 @@ private:
 
 class TByteCodeCMDDefine: public TByteCodeCMD {
 public:
-    TByteCodeCMDDefine(std::string name, size_t sizeArgs, std::vector<std::string> identName,
+    TByteCodeCMDDefine(std::string name, std::vector<std::string> identName,
+                       Enviroment& defParent,
                        std::vector<std::shared_ptr<TByteCodeCMD>>& cmd, size_t& IT);
     void UpdateStack(TStack& Stack);
+public:
+    std::shared_ptr<Enviroment> define = std::shared_ptr<Enviroment>(new Enviroment());
 private:
-    std::map<std::string, std::shared_ptr<IdentType>> args;
+    std::vector<std::string> Args;
     std::string funcName;
     std::vector<std::shared_ptr<TByteCodeCMD>>& command;
     size_t& it;
@@ -109,61 +111,52 @@ private:
 
 class TByteCodeCMDCall: public TByteCodeCMD {
 public:
-    TByteCodeCMDCall(std::string callee, size_t i, size_t& IT, std::vector<std::shared_ptr<TByteCodeCMD>>& Command);
+    TByteCodeCMDCall(std::string callee, size_t i, size_t& IT, std::vector<std::shared_ptr<TByteCodeCMD>>& Command, Enviroment& defParent);
     void UpdateStack(TStack& Stack);
 private:
     std::string name;
     size_t size;
     size_t& it;
     std::vector<std::shared_ptr<TByteCodeCMD>>& command;
-    std::map<std::string, ExprType*(*)(std::vector< std::shared_ptr<ExprType> >&) > stdFuncMap;
+    Enviroment& defineParent;
 };
 
 class TByteCodeCMDTailCall: public TByteCodeCMD {
 public:
-    TByteCodeCMDTailCall(std::string callee, size_t p, size_t i, size_t& IT);
+    TByteCodeCMDTailCall(std::string callee, size_t p, size_t i, size_t& IT, Enviroment& defParent);
     void UpdateStack(TStack& Stack);
 private:
     std::string name;
     size_t pos;
     size_t size;
     size_t& it;
-    std::map<std::string, ExprType*(*)(std::vector<std::shared_ptr<ExprType> >&) > stdFuncMap;
+    Enviroment& defineParent;
 };
 
-
-class TByteCodeCMDEndCall: public TByteCodeCMD {
+class TByteCodeCMDJump: public TByteCodeCMD {
 public:
-    TByteCodeCMDEndCall() {
-    }
-};
-
-class TByteCodeCMDEndDef: public TByteCodeCMD {
-public:
-    TByteCodeCMDEndDef(size_t& IT): it(IT)
-    {
+    TByteCodeCMDJump(size_t& It): it(It) {
     }
     void UpdateStack(TStack& Stack) {
-        Stack.defineFunc = defineFunctionBuffer;
-        Stack.defineVar = defineVaribleBuffer;
-        it = currentPos.at(currentPos.size()-1);
-        currentPos.pop_back();
+        it = currentPos;
     }
-    std::vector<size_t> currentPos;
+
+private:
     size_t& it;
-    std::map<std::string, std::shared_ptr<IdentType> > defineVaribleBuffer;
-    std::map<std::string, std::shared_ptr<FunctionType> > defineFunctionBuffer;
+public:
+    size_t currentPos;
 };
 
-class TByteCodeCMDEndLambda: public TByteCodeCMD {
+class TByteCodeCMDJumpEndDefine: public TByteCodeCMD {
 public:
-    TByteCodeCMDEndLambda()
-    {
+    TByteCodeCMDJumpEndDefine(size_t& It): it(It) {
     }
     void UpdateStack(TStack& Stack) {
-        Stack.defineFunc = defineFunctionBuffer;
-        Stack.defineVar = defineVaribleBuffer;
+        it = currentPos;
     }
-    std::map<std::string, std::shared_ptr<IdentType> > defineVaribleBuffer;
-    std::map<std::string, std::shared_ptr<FunctionType> > defineFunctionBuffer;
+
+private:
+    size_t& it;
+public:
+    size_t currentPos;
 };

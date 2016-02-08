@@ -1,7 +1,7 @@
-(define (fact n)
-	(define (help n x)
-		(if (= n 1)
-		    x
-		    (help (- n 1) (* x n))))
-	(help n 1))
-(fact 4)
+(define (aa n)
+  (define (help x b)
+    (if (= b 1)
+        x
+        (help (* x b) (- b 1))))
+  (help 1 n))
+(aa 3)

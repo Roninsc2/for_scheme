@@ -197,7 +197,19 @@ ExprAST* TParser::ParseDefineFunc()
 {
     GetNextToken();
     if (CurrentToken.state != State_Lbkt) {
-        return (ParseCallExprAST());
+        GetNextToken();
+        ExprAST* ident = GetExprType();
+        GetNextToken();
+        ExprAST* value = GetExprType();
+        GetNextToken();
+        if (ident->Type != AT_Ident && (value->Type == SAT_Define || value->Type == SAT_Lambda) && CurrentToken.state != State_Rbkt) {
+            throw new ParserExceptionIncorrectToken("error in define");
+        } else {
+            std::vector<std::shared_ptr<IdentAST> > args;
+            std::vector<std::shared_ptr<ExprAST>> body;
+            body.push_back(std::shared_ptr<ExprAST>(value));
+            return new FunctionAST(new PrototypeAST(dynamic_cast<IdentAST*>(ident)->name, args), body);
+        }
     }
     GetNextToken();
     std::string name;

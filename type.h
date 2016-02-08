@@ -26,6 +26,10 @@ enum EType {
 class ExprType {
 public:
     virtual ~ExprType(){}
+    virtual bool IsTrue(){
+        return true;
+    }
+
     EType Type;
 };
 
@@ -94,6 +98,9 @@ public:
     BoolType(bool val) : value(val) {
         Type = T_Bool;
     }
+    bool IsTrue() {
+        return value;
+    }
 
 public:
     bool value;
@@ -139,9 +146,11 @@ public:
 
 class NoneType : public ExprType {
 public:
-  NoneType()
-  {
+  NoneType() {
       Type = T_None;
+  }
+  bool IsTrue() {
+    return false;
   }
 };
 
@@ -149,27 +158,38 @@ public:
 
 class PrototypeType {
 public:
-    PrototypeType(const std::string &name, const std::map<std::string, std::shared_ptr<IdentType>> &args)
+    PrototypeType(const std::string name, const std::vector<std::string> args)
         : Name(name), Args(args)
     {
     }
 public:
     std::string Name;
-    std::map<std::string, std::shared_ptr<IdentType>> Args;
+    std::vector<std::string> Args;
+};
+
+class Enviroment {
+public:
+    Enviroment(){}
+    ~Enviroment(){}
+    std::map<std::string, std::shared_ptr<ExprType>> This;
+    Enviroment* Parent = nullptr;
 };
 
 
 class FunctionType: public ExprType {
 public:
-    FunctionType(PrototypeType* proto, size_t start, size_t end)
-        : Proto(proto)
+    FunctionType(PrototypeType* proto, size_t start, std::shared_ptr<Enviroment> e)
+        : Proto(proto), Env(e)
     {
+        for (size_t i = 0; i < Proto->Args.size();i++) {
+            Env->This.insert(std::make_pair(Proto->Args[i], std::shared_ptr<ExprType>(new IdentType(Proto->Args[i]))));
+        }
         Start = start;
-        End = end;
         Type = T_Func;
     }
 public:
     std::shared_ptr< PrototypeType >Proto;
+    std::shared_ptr<Enviroment> Env;
     size_t Start;
     size_t End;
 };

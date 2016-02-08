@@ -11,14 +11,14 @@ public:
     TByteCodeGen(const std::string fileName);
     ~TByteCodeGen();
     void GenByteCode();
-    void GenFuncByteCode(CallExprAST* func);
-    void GenIfElseByteCode(IfElseExprAST* expr, size_t pos = 0,  std::string name = "");
-    void GenLambdaByteCode(LambdaExprAST* expr, size_t pos = 0,  std::string name = "");
-    void GenTaliCallByteCode(CallExprAST* func, size_t pos);
-    void GenDefineByteCode(ExprAST* expr, std::string name, size_t pos);
-    void GenDefine(ExprAST* expr);
+    void GenFuncByteCode(CallExprAST* func, Enviroment& defineParent);
+    void GenIfElseByteCode(IfElseExprAST* expr, Enviroment& defineParent, size_t pos = 0,  std::string name = "");
+    void GenLambdaByteCode(LambdaExprAST* expr, Enviroment& defineParent,size_t pos = 0,  std::string name = "");
+    void GenTaliCallByteCode(CallExprAST* func,  Enviroment& defineParent, size_t pos);
+    void GenDefineByteCode(ExprAST* expr, Enviroment& defineParent, std::string name, size_t pos);
+    void GenDefine(ExprAST* expr, Enviroment& defineParent);
     void Allocator(ExprAST* value);
-    void GenExprValue(ExprAST* expr);
+    void GenExprValue(ExprAST* expr, Enviroment& defineParent);
     size_t GetAllocatorValue(ExprAST* expr);
     bool IsInAllocatorValue(ExprAST* epxr);
 private:

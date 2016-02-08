@@ -15,6 +15,5 @@ public:
 public:
     std::vector< std::shared_ptr<ExprType> > stack;
     std::vector< std::shared_ptr<ExprType> > allocator;
-    std::map<std::string, std::shared_ptr<IdentType> > defineVar;
-    std::map<std::string, std::shared_ptr<FunctionType> > defineFunc;
+    Enviroment define;
 };
