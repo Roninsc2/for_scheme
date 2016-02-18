@@ -227,7 +227,7 @@ void TByteCodeCMDLambda::UpdateStack(TStack &Stack)
     for (size_t i = 0; i < size; i++) {
         exprs.push_back(Stack.StackPop());
     }
-    Stack.ResetCurrentEnviroment(define);
+    Stack.ResetCurrentEnviroment(define.get());
     size_t j = exprs.size()-1;
     for (size_t i = 0; i < args.size(); i++) {
         dynamic_cast<IdentType*>(Stack.GetCurrentEnviroment()->Find(args[i]))->ResetValue(exprs.at(j));

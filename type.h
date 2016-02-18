@@ -252,8 +252,8 @@ public:
     void ResetStart(size_t i);
     size_t GetEnd();
     void ResetEnd(size_t i);
-    std::shared_ptr< PrototypeType >& GetPrototype();
-    std::shared_ptr<Enviroment>& GetEnviroment();
+    PrototypeType* GetPrototype();
+    Enviroment* GetEnviroment();
 
 private:
     std::shared_ptr< PrototypeType >Proto;

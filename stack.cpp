@@ -42,15 +42,14 @@ Enviroment &TStack::GetGlobalEnviroment()
     return define;
 }
 
-Enviroment *TStack::GetCurrentEnviroment()
+Enviroment* TStack::GetCurrentEnviroment()
 {
-    return currentDefine.get();
+    return currentDefine;
 }
 
-void TStack::ResetCurrentEnviroment(std::shared_ptr<Enviroment>& env)
+void TStack::ResetCurrentEnviroment(Enviroment* env)
 {
-    currentDefine.reset();
-    currentDefine = env;
+        currentDefine = env;
 }
 
 void TStack::PrintResult()

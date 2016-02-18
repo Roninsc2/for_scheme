@@ -19,10 +19,10 @@ public:
     std::shared_ptr<ExprType> GetAllocatorAt(size_t i);
     Enviroment& GetGlobalEnviroment();
     Enviroment* GetCurrentEnviroment();
-    void ResetCurrentEnviroment(std::shared_ptr<Enviroment>& env);
+    void ResetCurrentEnviroment(Enviroment* env);
 private:
     std::vector< std::shared_ptr<ExprType> > stack;
     std::vector< std::shared_ptr<ExprType> > allocator;
     Enviroment define;
-    std::shared_ptr<Enviroment> currentDefine;
+    Enviroment* currentDefine;
 };

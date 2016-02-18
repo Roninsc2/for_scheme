@@ -16,12 +16,12 @@ void FunctionType::ResetEnd(size_t i) {
     End = i;
 }
 
-std::shared_ptr< PrototypeType >& FunctionType::GetPrototype() {
-    return Proto;
+PrototypeType* FunctionType::GetPrototype() {
+    return Proto.get();
 }
 
-std::shared_ptr<Enviroment>& FunctionType::GetEnviroment() {
-    return Env;
+Enviroment* FunctionType::GetEnviroment() {
+    return Env.get();
 }
 
 
