@@ -39,8 +39,11 @@ public:
     NumberIntType(int val) : value(val) {
         Type = T_Int;
     }
+    int GetValue() {
+        return value;
+    }
 
-public:
+private:
     int value;
 };
 
@@ -50,8 +53,11 @@ public:
     NumberDoubleType(double val) : value(val) {
         Type = T_Double;
     }
+    double GetValue() {
+        return value;
+    }
 
-public:
+private:
     double value;
 };
 
@@ -64,8 +70,16 @@ public:
     }
     ~IdentType() {
     }
+    std::shared_ptr<ExprType>& GetValue() {
+        return value;
+    }
 
-public:
+    void ResetValue(std::shared_ptr<ExprType>& expr) {
+        value.reset();
+        value = expr;
+    }
+
+private:
     std::string name;
     std::shared_ptr<ExprType> value;
 };
@@ -76,8 +90,11 @@ public:
     StringType(std::string val) : value(val) {
         Type = T_String;
     }
+    std::string GetValue() {
+        return value;
+    }
 
-public:
+private:
     std::string value;
 };
 
@@ -87,8 +104,11 @@ public:
     CharType(char val) : value(val) {
         Type = T_Char;
     }
+    char GetValue() {
+        return value;
+    }
 
-public:
+private:
     char value;
 };
 
@@ -101,8 +121,11 @@ public:
     bool IsTrue() {
         return value;
     }
+    bool GetValue() {
+        return value;
+    }
 
-public:
+private:
     bool value;
 };
 
@@ -112,8 +135,11 @@ public:
     SymbolType(std::string val) : value(val) {
         Type = T_Symbol;
     }
+    std::string GetValue() {
+        return value;
+    }
 
-public:
+private:
     std::string value;
 };
 
@@ -126,8 +152,11 @@ public:
     ListType(std::shared_ptr<VList> val) : value(val) {
         Type = T_List;
     }
+    VList* GetValue() {
+        return value.get();
+    }
 
-public:
+private:
     std::shared_ptr<VList> value;
 };
 
@@ -158,12 +187,15 @@ public:
 
 class PrototypeType {
 public:
-    PrototypeType(const std::string name, const std::vector<std::string> args)
-        : Name(name), Args(args)
+    PrototypeType(const std::vector<std::string> args)
+        :  Args(args)
     {
     }
-public:
-    std::string Name;
+    std::string& GetArgsAt(size_t i);
+
+    size_t GetArgsSize();
+
+private:
     std::vector<std::string> Args;
 };
 
@@ -171,6 +203,35 @@ class Enviroment {
 public:
     Enviroment(){}
     ~Enviroment(){}
+    std::map<std::string, std::shared_ptr<ExprType>> GetEnviroment() {
+        return This;
+    }
+    Enviroment* GetParent() {
+        return Parent;
+    }
+    void ResetParent(Enviroment* env) {
+        Parent = env;
+    }
+    void InsertToEnviroment(std::string name, std::shared_ptr<ExprType> expr) {
+        This.insert(std::make_pair(name, expr));
+    }
+    ExprType* Find(std::string name) {
+        return This.at(name).get();
+    }
+    Enviroment* FindVarible(std::string name) {
+        Enviroment* env = this;
+        while (env->Parent) {
+            if (env->This.count(name)) {
+                return env;
+            }
+            env = env->Parent;
+        }
+        if (env->This.count(name)) {
+            return env;
+        }
+        return nullptr;
+    }
+private:
     std::map<std::string, std::shared_ptr<ExprType>> This;
     Enviroment* Parent = nullptr;
 };
@@ -181,13 +242,20 @@ public:
     FunctionType(PrototypeType* proto, size_t start, std::shared_ptr<Enviroment> e)
         : Proto(proto), Env(e)
     {
-        for (size_t i = 0; i < Proto->Args.size();i++) {
-            Env->This.insert(std::make_pair(Proto->Args[i], std::shared_ptr<ExprType>(new IdentType(Proto->Args[i]))));
+        for (size_t i = 0; i < Proto->GetArgsSize();i++) {
+            Env->InsertToEnviroment(Proto->GetArgsAt(i), std::shared_ptr<ExprType>(new IdentType(Proto->GetArgsAt(i))));
         }
         Start = start;
         Type = T_Func;
     }
-public:
+    size_t GetStart();
+    void ResetStart(size_t i);
+    size_t GetEnd();
+    void ResetEnd(size_t i);
+    std::shared_ptr< PrototypeType >& GetPrototype();
+    std::shared_ptr<Enviroment>& GetEnviroment();
+
+private:
     std::shared_ptr< PrototypeType >Proto;
     std::shared_ptr<Enviroment> Env;
     size_t Start;

@@ -12,7 +12,8 @@ SOURCES += main.cpp \
     stack.cpp \
     byte_code_cmd.cpp \
     scheme_std_lib.cpp \
-    vlist.cpp
+    vlist.cpp \
+    type.cpp
 
 HEADERS += \
     lexer.h \

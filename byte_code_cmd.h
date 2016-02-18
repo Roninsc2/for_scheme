@@ -9,6 +9,8 @@ class TByteCodeCMD {
 public:
     virtual ~TByteCodeCMD(){}
     virtual void UpdateStack(TStack& Stack){}
+public:
+    static const std::map<std::string, ExprType*(*)(std::vector< std::shared_ptr<ExprType> >&) > stdFuncMap;
 };
 
 class TByteCodeCMDAllocInt: public TByteCodeCMD {
@@ -17,6 +19,7 @@ public:
     void UpdateStack(TStack& Stack);
 private:
     int value;
+
 };
 
 class TByteCodeCMDAllocDouble: public TByteCodeCMD {
@@ -69,10 +72,9 @@ private:
 
 class TByteCodeCMDPushIdent: public TByteCodeCMD {
 public:
-    TByteCodeCMDPushIdent(std::string val, Enviroment& defineParent);
+    TByteCodeCMDPushIdent(std::string val);
     void UpdateStack(TStack& Stack);
 private:
-    Enviroment& defineParent;
     std::string value;
 };
 
@@ -86,12 +88,11 @@ private:
 
 class TByteCodeCMDLambda: public TByteCodeCMD {
 public:
-    TByteCodeCMDLambda(std::vector<std::string> agrs, std::vector<std::shared_ptr<TByteCodeCMD>>& cmd);
+    TByteCodeCMDLambda(std::vector<std::string> agrs, Enviroment& defParent);
     void UpdateStack(TStack& Stack);
-    size_t end;
 private:
-    std::vector<std::shared_ptr<TByteCodeCMD>>& command;
-    std::map<std::string, std::shared_ptr<IdentType>> args;
+    std::vector<std::string> args;
+    std::shared_ptr<Enviroment> define = std::shared_ptr<Enviroment>(new Enviroment());
 };
 
 class TByteCodeCMDDefine: public TByteCodeCMD {
@@ -111,26 +112,24 @@ private:
 
 class TByteCodeCMDCall: public TByteCodeCMD {
 public:
-    TByteCodeCMDCall(std::string callee, size_t i, size_t& IT, std::vector<std::shared_ptr<TByteCodeCMD>>& Command, Enviroment& defParent);
+    TByteCodeCMDCall(std::string callee, size_t i, size_t& IT, std::vector<std::shared_ptr<TByteCodeCMD>>& Command);
     void UpdateStack(TStack& Stack);
 private:
     std::string name;
     size_t size;
     size_t& it;
     std::vector<std::shared_ptr<TByteCodeCMD>>& command;
-    Enviroment& defineParent;
 };
 
 class TByteCodeCMDTailCall: public TByteCodeCMD {
 public:
-    TByteCodeCMDTailCall(std::string callee, size_t p, size_t i, size_t& IT, Enviroment& defParent);
+    TByteCodeCMDTailCall(std::string callee, size_t p, size_t i, size_t& IT);
     void UpdateStack(TStack& Stack);
 private:
     std::string name;
     size_t pos;
     size_t size;
     size_t& it;
-    Enviroment& defineParent;
 };
 
 class TByteCodeCMDJump: public TByteCodeCMD {

@@ -13,6 +13,15 @@ TLexer::~TLexer() {
     fin.close();
 }
 
+Token &TLexer::GetTokenAt(size_t i)
+{
+    if (Tokens.size() > i) {
+        return Tokens.at(i);
+    } else {
+        throw new ParserExceptionTokenEOF(std::to_string(Tokens.size()));
+    }
+}
+
 bool isspecial(char c) {
     return (c == '+' || c == '-' || c == '/' || c == '*'
             || c == '>' || c == '<' || c == '=' || c == '$'

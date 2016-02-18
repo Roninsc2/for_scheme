@@ -65,7 +65,7 @@ private:
 class TPairTypeList : public TPairType {
 
 public:
-    TPairTypeList(std::shared_ptr<VList> val): value(val) {
+    TPairTypeList(VList* val): value(val) {
         Type = PT_List;
     }
     ~TPairTypeList(){

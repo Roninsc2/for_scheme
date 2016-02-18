@@ -27,6 +27,15 @@ struct Token {
         state = s;
         value = v;
     }
+public:
+    std::string GetValue() {
+        return value;
+    }
+    States GetState() {
+        return state;
+    }
+
+private:
     States state;
     std::string value;
 };
@@ -36,6 +45,7 @@ class TLexer {
 public:
     TLexer(const std::string fileName);
     ~TLexer();
+    Token& GetTokenAt(size_t i);
 
 private:
     void Read();
@@ -55,7 +65,5 @@ private:
     std::ifstream fin;
     size_t PosColumn = 1;
     size_t PosLine = 1;
-
-public:
     std::vector< Token > Tokens;
 };

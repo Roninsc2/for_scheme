@@ -4,28 +4,28 @@
 TPairType* GetPairType(ExprType* expr) {
     switch (expr->Type) {
     case T_Bool: {
-        return (new TPairTypeBool(dynamic_cast<BoolType*>(expr)->value));
+        return (new TPairTypeBool(dynamic_cast<BoolType*>(expr)->GetValue()));
     }
     case T_String : {
-        return (new TPairTypeString(dynamic_cast<StringType*>(expr)->value));
+        return (new TPairTypeString(dynamic_cast<StringType*>(expr)->GetValue()));
     }
     case T_Symbol : {
-        return (new TPairTypeSymbol(dynamic_cast<SymbolType*>(expr)->value));
+        return (new TPairTypeSymbol(dynamic_cast<SymbolType*>(expr)->GetValue()));
     }
     case T_Char : {
-        return (new TPairTypeChar(dynamic_cast<CharType*>(expr)->value));
+        return (new TPairTypeChar(dynamic_cast<CharType*>(expr)->GetValue()));
     }
     case T_Int : {
-        return (new TPairTypeInt(dynamic_cast<NumberIntType*>(expr)->value));
+        return (new TPairTypeInt(dynamic_cast<NumberIntType*>(expr)->GetValue()));
     }
     case T_Double : {
-        return (new TPairTypeDouble(dynamic_cast<NumberDoubleType*>(expr)->value));
+        return (new TPairTypeDouble(dynamic_cast<NumberDoubleType*>(expr)->GetValue()));
     }
     case T_List : {
-        return (new TPairTypeList(dynamic_cast<ListType*>(expr)->value));
+        return (new TPairTypeList(dynamic_cast<ListType*>(expr)->GetValue()));
     }
     case T_Ident : {
-        return GetPairType(dynamic_cast<IdentType*>(expr)->value.get());
+        return GetPairType(dynamic_cast<IdentType*>(expr)->GetValue().get());
     }
     default: {
         break;
@@ -36,7 +36,7 @@ TPairType* GetPairType(ExprType* expr) {
 
 
 
-ExprType* list(std::vector< std::shared_ptr<ExprType> >& exprs) {
+ExprType* GetList(std::vector< std::shared_ptr<ExprType> >& exprs) {
     if (!exprs.size()) {
         return (new ListType(new VList(TPairTypePtr(nullptr))));
     } else {
@@ -91,9 +91,9 @@ ExprType* plus(std::vector<std::shared_ptr<ExprType>>& expr) {
     } else {
         for (int i = expr.size()-1; i >= 0; i--) {
             if (expr.at(i)->Type == T_Int) {
-                result += dynamic_cast<NumberIntType*>(expr.at(i).get())->value;
+                result += dynamic_cast<NumberIntType*>(expr.at(i).get())->GetValue();
             } else if (expr.at(i)->Type == T_Double) {
-                result += dynamic_cast<NumberDoubleType*>(expr.at(i).get())->value;
+                result += dynamic_cast<NumberDoubleType*>(expr.at(i).get())->GetValue();
             } else {
                 //error
             }
@@ -108,26 +108,26 @@ ExprType* minus(std::vector<std::shared_ptr<ExprType>>& expr) {
         //error
     } else if (expr.size() > 1){
         if (expr.at(expr.size()-1)->Type == T_Int) {
-            result = dynamic_cast<NumberIntType*>(expr.at(expr.size()-1).get())->value;
+            result = dynamic_cast<NumberIntType*>(expr.at(expr.size()-1).get())->GetValue();
         } else if (expr.at(expr.size()-1)->Type == T_Double) {
-            result = dynamic_cast<NumberDoubleType*>(expr.at(expr.size()-1).get())->value;
+            result = dynamic_cast<NumberDoubleType*>(expr.at(expr.size()-1).get())->GetValue();
         } else {
             //error
         }
         for (int i = expr.size()-2; i >= 0; i--) {
             if (expr.at(i)->Type == T_Int) {
-                result -= dynamic_cast<NumberIntType*>(expr.at(i).get())->value;
+                result -= dynamic_cast<NumberIntType*>(expr.at(i).get())->GetValue();
             } else if (expr.at(i)->Type == T_Double) {
-                result -= dynamic_cast<NumberDoubleType*>(expr.at(i).get())->value;
+                result -= dynamic_cast<NumberDoubleType*>(expr.at(i).get())->GetValue();
             } else {
                 //error
             }
         }
     } else {
         if (expr.at(0)->Type == T_Int) {
-            result -= dynamic_cast<NumberIntType*>(expr.at(0).get())->value;
+            result -= dynamic_cast<NumberIntType*>(expr.at(0).get())->GetValue();
         } else if (expr.at(0)->Type == T_Double) {
-            result -= dynamic_cast<NumberDoubleType*>(expr.at(0).get())->value;
+            result -= dynamic_cast<NumberDoubleType*>(expr.at(0).get())->GetValue();
         } else {
             //error
         }
@@ -142,9 +142,9 @@ ExprType* mult(std::vector<std::shared_ptr<ExprType>>& expr) {
     } else {
         for (int i = expr.size()-1; i >= 0; i--) {
             if (expr.at(i)->Type == T_Int) {
-                result *= dynamic_cast<NumberIntType*>(expr.at(i).get())->value;
+                result *= dynamic_cast<NumberIntType*>(expr.at(i).get())->GetValue();
             } else if (expr.at(i)->Type == T_Double) {
-                result *= dynamic_cast<NumberDoubleType*>(expr.at(i).get())->value;
+                result *= dynamic_cast<NumberDoubleType*>(expr.at(i).get())->GetValue();
             } else {
                 //error
             }
@@ -157,7 +157,7 @@ ExprType* defineFun(std::vector<std::shared_ptr<ExprType>>& expr) {
     if (expr.size() < 2) {
         //error
     } else if (expr.at(1)->Type == T_Ident && expr.size() == 2) {
-        dynamic_cast<IdentType*>(expr.at(1).get())->value.reset(expr.at(0).get());
+        dynamic_cast<IdentType*>(expr.at(1).get())->GetValue() = expr.at(0);
     }
 }
 
@@ -168,26 +168,26 @@ ExprType* division(std::vector<std::shared_ptr<ExprType>>& expr) {
         //error
     } else if (expr.size() > 1){
         if (expr.at(expr.size()-1)->Type == T_Int) {
-            result = dynamic_cast<NumberIntType*>(expr.at(expr.size()-1).get())->value;
+            result = dynamic_cast<NumberIntType*>(expr.at(expr.size()-1).get())->GetValue();
         } else if (expr.at(expr.size()-1)->Type == T_Double) {
-            result = dynamic_cast<NumberDoubleType*>(expr.at(expr.size()-1).get())->value;
+            result = dynamic_cast<NumberDoubleType*>(expr.at(expr.size()-1).get())->GetValue();
         } else {
             //error
         }
         for (int i = expr.size()-2; i >= 0; i--) {
             if (expr.at(i)->Type == T_Int) {
-                result /= dynamic_cast<NumberIntType*>(expr.at(i).get())->value;
+                result /= dynamic_cast<NumberIntType*>(expr.at(i).get())->GetValue();
             } else if (expr.at(i)->Type == T_Double) {
-                result /= dynamic_cast<NumberDoubleType*>(expr.at(i).get())->value;
+                result /= dynamic_cast<NumberDoubleType*>(expr.at(i).get())->GetValue();
             } else {
                 //error
             }
         }
     } else {
         if (expr.at(0)->Type == T_Int) {
-            result = 1.0 / dynamic_cast<NumberIntType*>(expr.at(0).get())->value;
+            result = 1.0 / dynamic_cast<NumberIntType*>(expr.at(0).get())->GetValue();
         } else if (expr.at(0)->Type == T_Double) {
-            result = 1.0 / dynamic_cast<NumberDoubleType*>(expr.at(0).get())->value;
+            result = 1.0 / dynamic_cast<NumberDoubleType*>(expr.at(0).get())->GetValue();
         } else {
             //error
         }
@@ -201,16 +201,16 @@ ExprType* equally(std::vector<std::shared_ptr<ExprType>>& expr) {
     } else {
         double result;
         if (expr.at(expr.size()-1)->Type == T_Int) {
-            result = dynamic_cast<NumberIntType*>(expr.at(expr.size()-1).get())->value;
+            result = dynamic_cast<NumberIntType*>(expr.at(expr.size()-1).get())->GetValue();
         } else if (expr.at(expr.size()-1)->Type == T_Double) {
-            result = dynamic_cast<NumberDoubleType*>(expr.at(expr.size()-1).get())->value;
+            result = dynamic_cast<NumberDoubleType*>(expr.at(expr.size()-1).get())->GetValue();
         } else {
             //error
         }
         for (int i = expr.size()-2; i >= 0; i--) {
-            if (expr.at(i)->Type == T_Int && dynamic_cast<NumberIntType*>(expr.at(i).get())->value != result) {
+            if (expr.at(i)->Type == T_Int && dynamic_cast<NumberIntType*>(expr.at(i).get())->GetValue() != result) {
                 return (new BoolType(false));
-            } else if (expr.at(i)->Type == T_Double && dynamic_cast<NumberDoubleType*>(expr.at(i).get())->value != result) {
+            } else if (expr.at(i)->Type == T_Double && dynamic_cast<NumberDoubleType*>(expr.at(i).get())->GetValue() != result) {
                 return (new BoolType(false));
             } else {
                 //error

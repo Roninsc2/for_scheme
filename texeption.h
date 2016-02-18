@@ -61,3 +61,18 @@ public:
 
 };
 
+
+class ParserExceptionTokenEOF : public Exception {
+public:
+    ParserExceptionTokenEOF(std::string tokVal) {
+        errorString = tokVal;
+    }
+    virtual const char* what() const throw() override {
+        std::string str = ("Tokens are end, max size is: " + errorString);
+        return str.c_str();
+    }
+public:
+    std::string errorString;
+
+};
+

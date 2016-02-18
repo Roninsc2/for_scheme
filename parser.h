@@ -11,6 +11,8 @@ public:
     ~TParser(){
     }
     void GetNextToken();
+    ExprAST* GetRootAt(size_t i);
+    size_t GetRootSize();
 
 private:
     ExprAST* ParseCallExprAST();
@@ -31,6 +33,5 @@ private:
     std::map<std::string, ExprAST*(TParser::*)()> stdFunc;
     Token CurrentToken;
     int i = 0;
-public:
     std::vector< std::shared_ptr<ExprAST> > root;
 };

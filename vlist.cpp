@@ -12,7 +12,7 @@ void VList::InsertAfter(std::shared_ptr<VList> after)
             //error
         }
     }
-    last->tail.reset(new TPairTypeList(after));
+    last->tail.reset(new TPairTypeList(after.get()));
 }
 
 void VList::InsertBefore(std::shared_ptr<VList> before)
@@ -25,7 +25,7 @@ void VList::InsertBefore(std::shared_ptr<VList> before)
             //error;
         }
     }
-    last->tail.reset(new TPairTypeList(before));
+    last->tail.reset(new TPairTypeList(before.get()));
 }
 
 void VList::ConvetToPair(TPairType* val) {

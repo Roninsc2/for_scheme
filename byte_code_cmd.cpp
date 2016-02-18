@@ -4,13 +4,10 @@
 #include "scheme_std_lib.cpp"
 
 
-std::map<std::string, ExprType*(*)(std::vector< std::shared_ptr<ExprType> >&) > stdFuncMap = { (std::make_pair("+", &plus)),  (std::make_pair("-", &minus)),
-        (std::make_pair("/", &division)), (std::make_pair("*", &mult)), (std::make_pair("cons", &cons)), (std::make_pair("append", &append)),
-        (std::make_pair("list", &list)), (std::make_pair("=", &equally)), (std::make_pair("define", &defineFun)) };
+const std::map<std::string, ExprType*(*)(std::vector< std::shared_ptr<ExprType> >&) >TByteCodeCMD::stdFuncMap  = { (std::make_pair("+", &plus)),  (std::make_pair("-", &minus)),
+                              (std::make_pair("/", &division)), (std::make_pair("*", &mult)), (std::make_pair("cons", &cons)), (std::make_pair("append", &append)),
+                              (std::make_pair("list", &GetList)), (std::make_pair("=", &equally)), (std::make_pair("define", &defineFun)) };
 
-Enviroment* FindVarible(std::string name, Enviroment* env);
-
-std::shared_ptr<ExprType> StackPop(TStack& Stack);
 
 TByteCodeCMDPush::TByteCodeCMDPush(size_t valNum){
     valueNumber = valNum;
@@ -18,19 +15,19 @@ TByteCodeCMDPush::TByteCodeCMDPush(size_t valNum){
 
 void TByteCodeCMDPush::UpdateStack(TStack& Stack)
 {
-    Stack.stack.push_back(Stack.allocator.at(valueNumber));
+    Stack.StackPushBack(Stack.GetAllocatorAt(valueNumber));
 }
 
 
-TByteCodeCMDPushIdent::TByteCodeCMDPushIdent(std::string val, Enviroment& defParent) : defineParent(defParent){
+TByteCodeCMDPushIdent::TByteCodeCMDPushIdent(std::string val) {
     value = val;
 }
 
 void TByteCodeCMDPushIdent::UpdateStack(TStack& Stack)
 {
-    Enviroment* env = FindVarible(value, &defineParent);
+    Enviroment* env = Stack.GetCurrentEnviroment()->FindVarible(value);
     if (env) {
-        Stack.stack.push_back(dynamic_cast<IdentType*>(env->This.at(value).get())->value);
+        Stack.StackPushBack(dynamic_cast<IdentType*>(env->Find(value))->GetValue());
     }
 }
 
@@ -42,7 +39,7 @@ TByteCodeCMDIfElse::TByteCodeCMDIfElse(size_t& IT)
 
 void TByteCodeCMDIfElse::UpdateStack(TStack& Stack)
 {
-    std::shared_ptr<ExprType> expr = StackPop(Stack);
+    std::shared_ptr<ExprType> expr = Stack.StackPop();
     if (expr->IsTrue()) {
         it++;
     }
@@ -56,20 +53,20 @@ TByteCodeCMDDefine::TByteCodeCMDDefine(std::string name, std::vector<std::string
 {
     funcName = name;
     Args = idents;
-    define->Parent = &defParent;
+    define->ResetParent(&defParent);
 }
 
 void TByteCodeCMDDefine::UpdateStack(TStack& Stack)
 {
-    PrototypeType* proto = new PrototypeType(funcName, Args);
+    PrototypeType* Proto = new PrototypeType(Args);
     size_t start = it;
     size_t count = 0;
-    FunctionType* func = new FunctionType(proto, start, define);
+    FunctionType* func = new FunctionType(Proto, start, define);
     while (it < command.size()) {
         it++;
         if (!count && dynamic_cast<TByteCodeCMDJumpEndDefine*>(command[it].get())) {
-            func->End = it;
-            define->Parent->This.insert(std::make_pair(funcName , std::shared_ptr<ExprType>(func)));
+            func->ResetEnd(it);
+            define->GetParent()->InsertToEnviroment(funcName , std::shared_ptr<ExprType>(func));
             break;
         } else if (dynamic_cast<TByteCodeCMDDefine*>(command[it].get())) {
             count++;
@@ -80,46 +77,46 @@ void TByteCodeCMDDefine::UpdateStack(TStack& Stack)
 }
 
 
-TByteCodeCMDCall::TByteCodeCMDCall(std::string callee, size_t i, size_t& IT, std::vector<std::shared_ptr<TByteCodeCMD>>& Command, Enviroment& defParent)
-    :size(i), it(IT), command(Command), defineParent(defParent)
+TByteCodeCMDCall::TByteCodeCMDCall(std::string callee, size_t i, size_t& IT, std::vector<std::shared_ptr<TByteCodeCMD>>& Command)
+    :size(i), it(IT), command(Command)
 {
     name = callee;
 }
 
 void TByteCodeCMDCall::UpdateStack(TStack& Stack)
 {
-    if (size > Stack.stack.size()) {
+    if (size > Stack.GetStackSize()) {
         return;
     }
     std::vector<std::shared_ptr<ExprType>> exprs;
     for (size_t i = 0; i < size; i++) {
-        exprs.push_back(StackPop(Stack));
+        exprs.push_back(Stack.StackPop());
     }
     if (stdFuncMap.count(name)) {
-        Stack.stack.push_back(std::shared_ptr<ExprType>(stdFuncMap.at(name)(exprs)));
+        Stack.StackPushBack(std::shared_ptr<ExprType>(stdFuncMap.at(name)(exprs)));
         return;
     }
-    Enviroment* env = FindVarible(name, &defineParent);
+    Enviroment* env = Stack.GetCurrentEnviroment()->FindVarible(name);
     if (env) {
-        FunctionType* Function = dynamic_cast<FunctionType*>(env->This.at(name).get());
-        if (exprs.size() == Function->Proto->Args.size()) {
+        FunctionType* Function = dynamic_cast<FunctionType*>(env->Find(name));
+        Stack.ResetCurrentEnviroment(Function->GetEnviroment());
+        if (exprs.size() == Function->GetPrototype()->GetArgsSize()) {
             size_t j = exprs.size()-1;
-            for (size_t i = 0; i <  Function->Proto->Args.size(); i++) {
-                dynamic_cast<IdentType*>(Function->Env->This.at(Function->Proto->Args[i]).get())->value.reset();
-                dynamic_cast<IdentType*>(Function->Env->This.at(Function->Proto->Args[i]).get())->value = exprs.at(j);
+            for (size_t i = 0; i <  Function->GetPrototype()->GetArgsSize(); i++) {
+                dynamic_cast<IdentType*>(Stack.GetCurrentEnviroment()->Find(Function->GetPrototype()->GetArgsAt(i)))->GetValue()= exprs.at(j);
                 j--;
             }
             size_t current_position = it;
-            it = Function->Start;
-            TByteCodeCMDJumpEndDefine* endDefine = dynamic_cast<TByteCodeCMDJumpEndDefine*>(command[Function->End].get());
+            it = Function->GetStart();
+            TByteCodeCMDJumpEndDefine* endDefine = dynamic_cast<TByteCodeCMDJumpEndDefine*>(command[Function->GetEnd()].get());
             endDefine->currentPos = current_position;
         }
     }
 }
 
 
-TByteCodeCMDTailCall::TByteCodeCMDTailCall(std::string callee, size_t p, size_t i, size_t& IT, Enviroment& defParent)
-    :size(i), it(IT), defineParent(defParent)
+TByteCodeCMDTailCall::TByteCodeCMDTailCall(std::string callee, size_t p, size_t i, size_t& IT)
+    :size(i), it(IT)
 {
     name = callee;
     pos = p-1;
@@ -127,21 +124,21 @@ TByteCodeCMDTailCall::TByteCodeCMDTailCall(std::string callee, size_t p, size_t 
 
 void TByteCodeCMDTailCall::UpdateStack(TStack& Stack)
 {
-    if (size > Stack.stack.size()) {
+    if (size > Stack.GetStackSize()) {
         return;
     }
     std::vector<std::shared_ptr<ExprType>> exprs;
     for (size_t i = 0; i < size; i++) {
-        exprs.push_back(StackPop(Stack));
+        exprs.push_back(Stack.StackPop());
     }
-    Enviroment* env = FindVarible(name, &defineParent);
+    Enviroment* env = Stack.GetCurrentEnviroment()->FindVarible(name);
     if (env) {
-        FunctionType* Function = dynamic_cast<FunctionType*>(env->This.at(name).get());
-        if (exprs.size() == Function->Proto->Args.size()) {
+        FunctionType* Function = dynamic_cast<FunctionType*>(env->Find(name));
+        Stack.ResetCurrentEnviroment(Function->GetEnviroment());
+        if (exprs.size() == Function->GetPrototype()->GetArgsSize()) {
             size_t j = exprs.size()-1;
-            for (size_t i = 0; i <  Function->Proto->Args.size(); i++) {
-                dynamic_cast<IdentType*>(Function->Env->This.at(Function->Proto->Args[i]).get())->value.reset();
-                dynamic_cast<IdentType*>(Function->Env->This.at(Function->Proto->Args[i]).get())->value = exprs.at(j);
+            for (size_t i = 0; i <  Function->GetPrototype()->GetArgsSize(); i++) {
+                dynamic_cast<IdentType*>(Stack.GetCurrentEnviroment()->Find(Function->GetPrototype()->GetArgsAt(i)))->ResetValue(exprs.at(j));
                 j--;
             }
             it = pos;
@@ -157,7 +154,7 @@ TByteCodeCMDAllocInt::TByteCodeCMDAllocInt(int val)
 
 void TByteCodeCMDAllocInt::UpdateStack(TStack& Stack)
 {
-    Stack.allocator.push_back(std::shared_ptr<ExprType>(new NumberIntType(value)));
+    Stack.AllocatorPushBack(std::shared_ptr<ExprType>(new NumberIntType(value)));
 }
 
 
@@ -168,7 +165,7 @@ TByteCodeCMDAllocDouble::TByteCodeCMDAllocDouble(double val)
 
 void TByteCodeCMDAllocDouble::UpdateStack(TStack& Stack)
 {
-    Stack.allocator.push_back(std::shared_ptr<ExprType>(new NumberDoubleType(value)));
+    Stack.AllocatorPushBack(std::shared_ptr<ExprType>(new NumberDoubleType(value)));
 }
 
 TByteCodeCMDAllocChar::TByteCodeCMDAllocChar(char val)
@@ -178,7 +175,7 @@ TByteCodeCMDAllocChar::TByteCodeCMDAllocChar(char val)
 
 void TByteCodeCMDAllocChar::UpdateStack(TStack& Stack)
 {
-    Stack.allocator.push_back(std::shared_ptr<ExprType>(new CharType(value)));
+    Stack.AllocatorPushBack(std::shared_ptr<ExprType>(new CharType(value)));
 }
 
 TByteCodeCMDAllocString::TByteCodeCMDAllocString(std::string val)
@@ -188,7 +185,7 @@ TByteCodeCMDAllocString::TByteCodeCMDAllocString(std::string val)
 
 void TByteCodeCMDAllocString::UpdateStack(TStack& Stack)
 {
-    Stack.allocator.push_back(std::shared_ptr<ExprType>(new StringType(value)));
+    Stack.AllocatorPushBack(std::shared_ptr<ExprType>(new StringType(value)));
 }
 
 TByteCodeCMDAllocSymbol::TByteCodeCMDAllocSymbol(std::string val)
@@ -198,7 +195,7 @@ TByteCodeCMDAllocSymbol::TByteCodeCMDAllocSymbol(std::string val)
 
 void TByteCodeCMDAllocSymbol::UpdateStack(TStack& Stack)
 {
-    Stack.allocator.push_back(std::shared_ptr<ExprType>(new SymbolType(value)));
+    Stack.AllocatorPushBack(std::shared_ptr<ExprType>(new SymbolType(value)));
 }
 
 TByteCodeCMDAllocBool::TByteCodeCMDAllocBool(bool val)
@@ -208,54 +205,32 @@ TByteCodeCMDAllocBool::TByteCodeCMDAllocBool(bool val)
 
 void TByteCodeCMDAllocBool::UpdateStack(TStack& Stack)
 {
-    Stack.allocator.push_back(std::shared_ptr<ExprType>(new BoolType(value)));
+    Stack.AllocatorPushBack(std::shared_ptr<ExprType>(new BoolType(value)));
 }
 
-std::shared_ptr<ExprType> StackPop(TStack& Stack) {
-    std::shared_ptr<ExprType> expr = Stack.stack.at(Stack.stack.size()-1);
-    Stack.stack.pop_back();
-    return expr;
-}
-
-TByteCodeCMDLambda::TByteCodeCMDLambda(std::vector<std::string> idents, std::vector<std::shared_ptr<TByteCodeCMD>>& cmd): command(cmd)
+TByteCodeCMDLambda::TByteCodeCMDLambda(std::vector<std::string> idents, Enviroment& defParent)
+    : args(idents)
 {
+    define->ResetParent(&defParent);
     for (size_t i = 0; i < idents.size(); i++) {
-        args.insert(std::make_pair(idents[i], std::shared_ptr<IdentType>(new IdentType(idents[i]))));
+        define->InsertToEnviroment(idents[i], std::shared_ptr<IdentType>(new IdentType(idents[i])));
     }
 }
 
 void TByteCodeCMDLambda::UpdateStack(TStack &Stack)
 {
-    /*size_t size = args.size();
-    if (size > Stack.stack.size()) {
+    size_t size = args.size();
+    if (size > Stack.GetStackSize()) {
         return;
     }
     std::vector<std::shared_ptr<ExprType>> exprs;
     for (size_t i = 0; i < size; i++) {
-        exprs.push_back(StackPop(Stack));
+        exprs.push_back(Stack.StackPop());
     }
+    Stack.ResetCurrentEnviroment(define);
     size_t j = exprs.size()-1;
-    for (auto i = args.begin(); i != args.end(); i++) {
-        i->second->value.reset();
-        i->second->value = exprs.at(j);
-        if (Stack.define.count(i->first)) {
-            Stack.define.erase(i->first);
-        }
-        Stack.define.insert(std::make_pair(i->first, i->second));
+    for (size_t i = 0; i < args.size(); i++) {
+        dynamic_cast<IdentType*>(Stack.GetCurrentEnviroment()->Find(args[i]))->ResetValue(exprs.at(j));
         j--;
-    }*/
-}
-
-Enviroment* FindVarible(std::string name, Enviroment* env)
-{
-    while (env->Parent) {
-        if (env->This.count(name)) {
-            return env;
-        }
-        env = env->Parent;
     }
-    if (env->This.count(name)) {
-        return env;
-    }
-    return nullptr;
 }

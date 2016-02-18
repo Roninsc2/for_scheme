@@ -33,8 +33,11 @@ public:
     NumberIntAST(int val) : value(val) {
         Type = AT_Int;
     }
+    int GetValue() {
+        return value;
+    }
 
-public:
+private:
     int value;
 };
 
@@ -44,8 +47,10 @@ public:
     NumberDoubleAST(double val) : value(val) {
         Type = AT_Double;
     }
-
-public:
+    double GetValue() {
+        return value;
+    }
+private:
     double value;
 };
 
@@ -56,7 +61,10 @@ public:
     IdentAST(std::string val) : name(val) {
         Type = AT_Ident;
     }
-public:
+    std::string GetName() {
+        return name;
+    }
+private:
     std::string name;
 };
 
@@ -66,8 +74,11 @@ public:
     StringAST(std::string val) : value(val) {
         Type = AT_String;
     }
+    std::string GetValue() {
+        return value;
+    }
 
-public:
+private:
     std::string value;
 };
 
@@ -77,8 +88,11 @@ public:
     CharAST(char val) : value(val) {
         Type = AT_Char;
     }
+    char GetValue() {
+        return value;
+    }
 
-public:
+private:
     char value;
 };
 
@@ -88,8 +102,11 @@ public:
     BoolAST(bool val) : value(val) {
         Type = AT_Bool;
     }
+    bool GetValue() {
+        return value;
+    }
 
-public:
+private:
     bool value;
 };
 
@@ -99,8 +116,11 @@ public:
     SymbolAST(std::string val) : value(val) {
         Type = AT_Symbol;
     }
+    std::string GetValue() {
+        return value;
+    }
 
-public:
+private:
     std::string value;
 };
 
@@ -174,7 +194,7 @@ public:
 
 class PrototypeAST {
 public:
-  PrototypeAST(const std::string &name, const std::vector<std::shared_ptr<IdentAST> > &args)
+  PrototypeAST(const std::string name, const std::vector<std::shared_ptr<IdentAST> > &args)
     : Name(name), Args(args)
   {
   }

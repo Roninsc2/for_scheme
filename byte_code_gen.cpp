@@ -1,6 +1,7 @@
 #include "byte_code_gen.h"
 
 
+
 TByteCodeGen::TByteCodeGen(const std::string fileName): Parser(new TParser(fileName)), Stack(TStack())
 {
     GenByteCode();
@@ -17,11 +18,11 @@ TByteCodeGen::~TByteCodeGen() {
 
 void TByteCodeGen::GenByteCode()
 {
-    for (size_t i = 0; i < Parser->root.size(); i++) {
-        Allocator(Parser->root[i].get());
+    for (size_t i = 0; i < Parser->GetRootSize(); i++) {
+        Allocator(Parser->GetRootAt(i));
     }
-    for (size_t i = 0; i < Parser->root.size(); i++) {
-        GenExprValue(Parser->root[i].get(), Stack.define);
+    for (size_t i = 0; i < Parser->GetRootSize(); i++) {
+        GenExprValue(Parser->GetRootAt(i), Stack.GetGlobalEnviroment());
     }
 }
 
@@ -30,7 +31,7 @@ void TByteCodeGen::GenFuncByteCode(CallExprAST* func,  Enviroment& defineParent)
     for (size_t i = 0; i < func->Args.size(); i++) {
         GenExprValue(func->Args[i].get(), defineParent);
     }
-    command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDCall(func->Callee, func->Args.size(), it, command, defineParent)));
+    command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDCall(func->Callee, func->Args.size(), it, command)));
 }
 
 
@@ -39,7 +40,7 @@ void TByteCodeGen::GenTaliCallByteCode(CallExprAST *func, Enviroment& definePare
     for (size_t i = 0; i < func->Args.size(); i++) {
         GenExprValue(func->Args[i].get(), defineParent);
     }
-    command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDTailCall(func->Callee, pos, func->Args.size(), it, defineParent)));
+    command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDTailCall(func->Callee, pos, func->Args.size(), it)));
 }
 
 void TByteCodeGen::GenIfElseByteCode(IfElseExprAST *expr,  Enviroment& defineParent, size_t pos, std::string name)
@@ -81,12 +82,12 @@ void TByteCodeGen::GenLambdaByteCode(LambdaExprAST *expr, Enviroment& definePare
 {
     std::vector<std::string> args;
     for (size_t j = 0; j < expr->Idents.size(); j++) {
-        args.push_back(expr->Idents[j]->name);
+        args.push_back(expr->Idents[j]->GetName());
     }
     for (size_t i = 0; i < expr->Args.size(); i++) {
         GenExprValue(expr->Args.at(i).get(), defineParent);
     }
-    command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDLambda(args, command)));
+    command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDLambda(args, defineParent)));
     if (!name.size()) {
         for (size_t i = 0; i < expr->Body.size(); i++) {
             GenExprValue(expr->Body[i].get(), defineParent);
@@ -132,7 +133,7 @@ void TByteCodeGen::GenDefine(ExprAST *expr, Enviroment& defineParent)
     FunctionAST* currentDefine = dynamic_cast<FunctionAST*>(expr);
     std::vector<std::string> args;
     for (size_t j = 0; j < currentDefine->Proto->Args.size(); j++) {
-        args.push_back(currentDefine->Proto->Args[j]->name);
+        args.push_back(currentDefine->Proto->Args[j]->GetName());
     }
     std::shared_ptr<TByteCodeCMDDefine> Define(new TByteCodeCMDDefine(currentDefine->Proto->Name, args, defineParent, command, it));
     command.push_back(Define);
@@ -152,27 +153,27 @@ void TByteCodeGen::Allocator(ExprAST* expr)
     }
     switch (expr->Type) {
     case AT_Int: {
-        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocInt(dynamic_cast<NumberIntAST*>(expr)->value)));
+        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocInt(dynamic_cast<NumberIntAST*>(expr)->GetValue())));
         return;
     }
     case AT_Double : {
-        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocDouble(dynamic_cast<NumberDoubleAST*>(expr)->value)));
+        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocDouble(dynamic_cast<NumberDoubleAST*>(expr)->GetValue())));
         return;
     }
     case AT_String : {
-        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocString(dynamic_cast<StringAST*>(expr)->value)));
+        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocString(dynamic_cast<StringAST*>(expr)->GetValue())));
         return;
     }
     case AT_Symbol : {
-        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocSymbol(dynamic_cast<SymbolAST*>(expr)->value)));
+        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocSymbol(dynamic_cast<SymbolAST*>(expr)->GetValue())));
         return;
     }
     case AT_Char : {
-        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocChar(dynamic_cast<CharAST*>(expr)->value)));
+        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocChar(dynamic_cast<CharAST*>(expr)->GetValue())));
         return;
     }
     case AT_Bool : {
-        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocBool(dynamic_cast<BoolAST*>(expr)->value)));
+        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDAllocBool(dynamic_cast<BoolAST*>(expr)->GetValue())));
         return;
     }
     case SAT_IfElse: {
@@ -208,9 +209,12 @@ void TByteCodeGen::Allocator(ExprAST* expr)
         }
         return;
     }
+    case AT_Ident: {
+        return;
+    }
     default: {
-        break;
         throw new ParserExceptionIncorrectToken("cannot identify token type");
+        return;
     }
     }
 }
@@ -218,7 +222,7 @@ void TByteCodeGen::Allocator(ExprAST* expr)
 void TByteCodeGen::GenExprValue(ExprAST *expr, Enviroment& defineParent) {
     switch (expr->Type) {
     case AT_Ident : {
-        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDPushIdent(dynamic_cast<IdentAST*>(expr)->name, defineParent)));
+        command.push_back(std::shared_ptr<TByteCodeCMD>(new TByteCodeCMDPushIdent(dynamic_cast<IdentAST*>(expr)->GetName())));
         return;
     }
     case SAT_IfElse: {
@@ -250,37 +254,37 @@ size_t TByteCodeGen::GetAllocatorValue(ExprAST *expr)
         if (expr->Type == it->first->Type) {
             switch (expr->Type) {
             case AT_Int: {
-                if (dynamic_cast<NumberIntAST*>(expr)->value == dynamic_cast<NumberIntAST*>(it->first)->value) {
+                if (dynamic_cast<NumberIntAST*>(expr)->GetValue() == dynamic_cast<NumberIntAST*>(it->first)->GetValue()) {
                     return it->second;
                 }
                 break;
             }
             case AT_Double: {
-                if (dynamic_cast<NumberDoubleAST*>(expr)->value == dynamic_cast<NumberDoubleAST*>(it->first)->value) {
+                if (dynamic_cast<NumberDoubleAST*>(expr)->GetValue() == dynamic_cast<NumberDoubleAST*>(it->first)->GetValue()) {
                     return it->second;
                 }
                 break;
             }
             case AT_Char: {
-                if (dynamic_cast<CharAST*>(expr)->value == dynamic_cast<CharAST*>(it->first)->value) {
+                if (dynamic_cast<CharAST*>(expr)->GetValue() == dynamic_cast<CharAST*>(it->first)->GetValue()) {
                     return it->second;
                 }
                 break;
             }
             case AT_String: {
-                if (dynamic_cast<StringAST*>(expr)->value == dynamic_cast<StringAST*>(it->first)->value) {
+                if (dynamic_cast<StringAST*>(expr)->GetValue() == dynamic_cast<StringAST*>(it->first)->GetValue()) {
                     return it->second;
                 }
                 break;
             }
             case AT_Bool: {
-                if (dynamic_cast<BoolAST*>(expr)->value == dynamic_cast<BoolAST*>(it->first)->value) {
+                if (dynamic_cast<BoolAST*>(expr)->GetValue() == dynamic_cast<BoolAST*>(it->first)->GetValue()) {
                     return it->second;
                 }
                 break;
             }
             case AT_Symbol: {
-                if (dynamic_cast<SymbolAST*>(expr)->value == dynamic_cast<SymbolAST*>(it->first)->value) {
+                if (dynamic_cast<SymbolAST*>(expr)->GetValue() == dynamic_cast<SymbolAST*>(it->first)->GetValue()) {
                     return it->second;
                 }
                 break;
@@ -299,37 +303,37 @@ bool TByteCodeGen::IsInAllocatorValue(ExprAST *expr)
         if (expr->Type == it->first->Type) {
             switch (expr->Type) {
             case AT_Int: {
-                if (dynamic_cast<NumberIntAST*>(expr)->value == dynamic_cast<NumberIntAST*>(it->first)->value) {
+                if (dynamic_cast<NumberIntAST*>(expr)->GetValue() == dynamic_cast<NumberIntAST*>(it->first)->GetValue()) {
                     return true;
                 }
                 break;
             }
             case AT_Double: {
-                if (dynamic_cast<NumberDoubleAST*>(expr)->value == dynamic_cast<NumberDoubleAST*>(it->first)->value) {
+                if (dynamic_cast<NumberDoubleAST*>(expr)->GetValue() == dynamic_cast<NumberDoubleAST*>(it->first)->GetValue()) {
                     return true;
                 }
                 break;
             }
             case AT_Char: {
-                if (dynamic_cast<CharAST*>(expr)->value == dynamic_cast<CharAST*>(it->first)->value) {
+                if (dynamic_cast<CharAST*>(expr)->GetValue() == dynamic_cast<CharAST*>(it->first)->GetValue()) {
                     return true;
                 }
                 break;
             }
             case AT_String: {
-                if (dynamic_cast<StringAST*>(expr)->value == dynamic_cast<StringAST*>(it->first)->value) {
+                if (dynamic_cast<StringAST*>(expr)->GetValue() == dynamic_cast<StringAST*>(it->first)->GetValue()) {
                     return true;
                 }
                 break;
             }
             case AT_Bool: {
-                if (dynamic_cast<BoolAST*>(expr)->value == dynamic_cast<BoolAST*>(it->first)->value) {
+                if (dynamic_cast<BoolAST*>(expr)->GetValue() == dynamic_cast<BoolAST*>(it->first)->GetValue()) {
                     return true;
                 }
                 break;
             }
             case AT_Symbol: {
-                if (dynamic_cast<SymbolAST*>(expr)->value == dynamic_cast<SymbolAST*>(it->first)->value) {
+                if (dynamic_cast<SymbolAST*>(expr)->GetValue() == dynamic_cast<SymbolAST*>(it->first)->GetValue()) {
                     return true;
                 }
                 break;
