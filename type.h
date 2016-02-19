@@ -39,9 +39,7 @@ public:
     NumberIntType(int val) : value(val) {
         Type = T_Int;
     }
-    int GetValue() {
-        return value;
-    }
+    int GetValue();
 
 private:
     int value;
@@ -53,9 +51,7 @@ public:
     NumberDoubleType(double val) : value(val) {
         Type = T_Double;
     }
-    double GetValue() {
-        return value;
-    }
+    double GetValue();
 
 private:
     double value;
@@ -70,14 +66,8 @@ public:
     }
     ~IdentType() {
     }
-    std::shared_ptr<ExprType>& GetValue() {
-        return value;
-    }
-
-    void ResetValue(std::shared_ptr<ExprType>& expr) {
-        value.reset();
-        value = expr;
-    }
+    std::shared_ptr<ExprType>& GetValue();
+    void ResetValue(std::shared_ptr<ExprType>& expr);
 
 private:
     std::string name;
@@ -90,9 +80,7 @@ public:
     StringType(std::string val) : value(val) {
         Type = T_String;
     }
-    std::string GetValue() {
-        return value;
-    }
+    std::string GetValue();
 
 private:
     std::string value;
@@ -104,9 +92,7 @@ public:
     CharType(char val) : value(val) {
         Type = T_Char;
     }
-    char GetValue() {
-        return value;
-    }
+    char GetValue();
 
 private:
     char value;
@@ -118,12 +104,8 @@ public:
     BoolType(bool val) : value(val) {
         Type = T_Bool;
     }
-    bool IsTrue() {
-        return value;
-    }
-    bool GetValue() {
-        return value;
-    }
+    bool IsTrue();
+    bool GetValue();
 
 private:
     bool value;
@@ -135,9 +117,7 @@ public:
     SymbolType(std::string val) : value(val) {
         Type = T_Symbol;
     }
-    std::string GetValue() {
-        return value;
-    }
+    std::string GetValue();
 
 private:
     std::string value;
@@ -152,25 +132,10 @@ public:
     ListType(std::shared_ptr<VList> val) : value(val) {
         Type = T_List;
     }
-    VList* GetValue() {
-        return value.get();
-    }
+    VList* GetValue();
 
 private:
     std::shared_ptr<VList> value;
-};
-
-class CallExprType : public ExprType {
-public:
-  std::string Callee;
-  std::vector< std::shared_ptr<ExprType> > Args;
-
-public:
-  CallExprType(const std::string &callee, std::vector< std::shared_ptr<ExprType> > &args)
-    : Callee(callee), Args(args)
-  {
-      Type = T_CallFunc;
-  }
 };
 
 class NoneType : public ExprType {
@@ -192,7 +157,6 @@ public:
     {
     }
     std::string& GetArgsAt(size_t i);
-
     size_t GetArgsSize();
 
 private:
@@ -203,34 +167,12 @@ class Enviroment {
 public:
     Enviroment(){}
     ~Enviroment(){}
-    std::map<std::string, std::shared_ptr<ExprType>> GetEnviroment() {
-        return This;
-    }
-    Enviroment* GetParent() {
-        return Parent;
-    }
-    void ResetParent(Enviroment* env) {
-        Parent = env;
-    }
-    void InsertToEnviroment(std::string name, std::shared_ptr<ExprType> expr) {
-        This.insert(std::make_pair(name, expr));
-    }
-    ExprType* Find(std::string name) {
-        return This.at(name).get();
-    }
-    Enviroment* FindVarible(std::string name) {
-        Enviroment* env = this;
-        while (env->Parent) {
-            if (env->This.count(name)) {
-                return env;
-            }
-            env = env->Parent;
-        }
-        if (env->This.count(name)) {
-            return env;
-        }
-        return nullptr;
-    }
+    std::map<std::string, std::shared_ptr<ExprType>> GetEnviroment();
+    Enviroment* GetParent();
+    void ResetParent(Enviroment* env);
+    void InsertToEnviroment(std::string name, std::shared_ptr<ExprType> expr);
+    ExprType* Find(std::string name);
+    Enviroment* FindVarible(std::string name);
 private:
     std::map<std::string, std::shared_ptr<ExprType>> This;
     Enviroment* Parent = nullptr;

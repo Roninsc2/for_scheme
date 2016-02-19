@@ -7,7 +7,7 @@ void VList::InsertAfter(std::shared_ptr<VList> after)
     TPair* last = list.get();
     while (last->tail) {
         if (last->tail->GetType() == PT_List) {
-            last = dynamic_cast<TPairTypeList*>(last->tail.get())->GetValue()->list.get();
+            last = dynamic_cast<TPairTypeList*>(last->tail.get())->GetValue()->GetList();
         } else {
             //error
         }
@@ -17,10 +17,10 @@ void VList::InsertAfter(std::shared_ptr<VList> after)
 
 void VList::InsertBefore(std::shared_ptr<VList> before)
 {
-    TPair* last = before->list.get();
+    TPair* last = before->GetList();
     while (last->tail) {
         if (last->tail->GetType() == PT_List) {
-            last = dynamic_cast<TPairTypeList*>(last->tail.get())->GetValue()->list.get();
+            last = dynamic_cast<TPairTypeList*>(last->tail.get())->GetValue()->GetList();
         } else {
             //error;
         }
@@ -32,7 +32,7 @@ void VList::ConvetToPair(TPairType* val) {
     TPair* last = list.get();
     while (last->tail) {
         if (last->tail->GetType() == PT_List) {
-            last = dynamic_cast<TPairTypeList*>(last->tail.get())->GetValue()->list.get();
+            last = dynamic_cast<TPairTypeList*>(last->tail.get())->GetValue()->GetList();
         } else {
             //error;
         }
@@ -46,7 +46,7 @@ size_t VList::ListLength()
     size_t count = 1;
     while (last->tail) {
         if (last->tail->GetType() == PT_List) {
-            last = dynamic_cast<TPairTypeList*>(last->tail.get())->GetValue()->list.get();
+            last = dynamic_cast<TPairTypeList*>(last->tail.get())->GetValue()->GetList();
         } else {
             //error
         }
@@ -62,7 +62,7 @@ bool VList::isList()
         if (last->tail->GetType() != PT_List) {
             return false;
         } else {
-            last = dynamic_cast<TPairTypeList*>(last->tail.get())->GetValue()->list.get();
+            last = dynamic_cast<TPairTypeList*>(last->tail.get())->GetValue()->GetList();
         }
     }
     return true;
@@ -119,7 +119,7 @@ void VList::GetListData()
     while(last->tail) {
         GetPairData(last->head.get());
         if (last->tail->GetType() == PT_List) {
-            last = dynamic_cast<TPairTypeList*>(last->tail.get())->GetValue()->list.get();
+            last = dynamic_cast<TPairTypeList*>(last->tail.get())->GetValue()->GetList();
         } else {
             std::cout << ". ";
             GetPairData(last->tail.get());

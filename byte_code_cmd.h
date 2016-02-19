@@ -102,8 +102,10 @@ public:
                        std::vector<std::shared_ptr<TByteCodeCMD>>& cmd, size_t& IT);
     void UpdateStack(TStack& Stack);
 public:
-    std::shared_ptr<Enviroment> define = std::shared_ptr<Enviroment>(new Enviroment());
+    Enviroment* GetEnviroment();
+
 private:
+    std::shared_ptr<Enviroment> define = std::shared_ptr<Enviroment>(new Enviroment());
     std::vector<std::string> Args;
     std::string funcName;
     std::vector<std::shared_ptr<TByteCodeCMD>>& command;
@@ -139,10 +141,10 @@ public:
     void UpdateStack(TStack& Stack) {
         it = currentPos;
     }
+    void SetCurrentPos(size_t pos);
 
 private:
     size_t& it;
-public:
     size_t currentPos;
 };
 
@@ -153,9 +155,9 @@ public:
     void UpdateStack(TStack& Stack) {
         it = currentPos;
     }
+    void SetCurrentPos(size_t pos);
 
 private:
     size_t& it;
-public:
     size_t currentPos;
 };

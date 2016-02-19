@@ -126,15 +126,25 @@ private:
 
 class CallExprAST : public ExprAST {
 public:
-  std::string Callee;
-  std::vector<std::shared_ptr<ExprAST> > Args;
-
-public:
   CallExprAST(const std::string &callee, std::vector<std::shared_ptr<ExprAST> > &args)
     : Callee(callee), Args(args)
   {
       Type = AT_Func;
   }
+  std::string GetName() {
+      return Callee;
+  }
+  size_t GetArgsSize() {
+      return Args.size();
+  }
+  ExprAST* GetArgsAt(size_t i) {
+      return Args.at(i).get();
+  }
+
+
+private:
+  std::string Callee;
+  std::vector<std::shared_ptr<ExprAST> > Args;
 };
 
 

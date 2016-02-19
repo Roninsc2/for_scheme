@@ -24,7 +24,9 @@ public:
 private:
     std::shared_ptr< TParser > Parser;
     std::map<ExprAST*, size_t> allocatorValue;
-public:
+    std::vector<std::shared_ptr<TByteCodeCMD>> command;
+    TStack Stack;
+    size_t it = 0;
     enum Command {
         CMD_AllOC = '0',
         CMD_PUSH = '1',
@@ -45,7 +47,4 @@ public:
         VT_CHAR = '4',
         VT_BOOL = '5'
     };
-    std::vector<std::shared_ptr<TByteCodeCMD>> command;
-    TStack Stack;
-    size_t it = 0;
 };

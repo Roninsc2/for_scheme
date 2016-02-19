@@ -76,6 +76,10 @@ void TByteCodeCMDDefine::UpdateStack(TStack& Stack)
     }
 }
 
+Enviroment *TByteCodeCMDDefine::GetEnviroment() {
+    return define.get();
+}
+
 
 TByteCodeCMDCall::TByteCodeCMDCall(std::string callee, size_t i, size_t& IT, std::vector<std::shared_ptr<TByteCodeCMD>>& Command)
     :size(i), it(IT), command(Command)
@@ -109,7 +113,7 @@ void TByteCodeCMDCall::UpdateStack(TStack& Stack)
             size_t current_position = it;
             it = Function->GetStart();
             TByteCodeCMDJumpEndDefine* endDefine = dynamic_cast<TByteCodeCMDJumpEndDefine*>(command[Function->GetEnd()].get());
-            endDefine->currentPos = current_position;
+            endDefine->SetCurrentPos(current_position);
         }
     }
 }
@@ -233,4 +237,12 @@ void TByteCodeCMDLambda::UpdateStack(TStack &Stack)
         dynamic_cast<IdentType*>(Stack.GetCurrentEnviroment()->Find(args[i]))->ResetValue(exprs.at(j));
         j--;
     }
+}
+
+void TByteCodeCMDJump::SetCurrentPos(size_t pos) {
+    currentPos = pos;
+}
+
+void TByteCodeCMDJumpEndDefine::SetCurrentPos(size_t pos) {
+    currentPos = pos;
 }
