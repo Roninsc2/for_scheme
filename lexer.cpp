@@ -66,8 +66,11 @@ void TLexer::IsCorrectToken(char c, std::string& value, States state) {
 void TLexer::Read() {
     char c;
     std::string value = "";
-    while (!FileEOF()) {
+    while (true) {
         c = GetChar();
+        if (FileEOF()) {
+            break;
+        }
         value += c;
         switch (c) {
             case 34: {
@@ -117,6 +120,9 @@ void TLexer::Read() {
 char TLexer::GetChar() {
     char c;
     fin.get(c);
+    if (FileEOF()) {
+        return c;
+    }
     if (c == '\n') {
         PosLine += 1;
         PosColumn = 1;
