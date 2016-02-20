@@ -95,6 +95,14 @@ private:
     std::shared_ptr<Enviroment> define = std::shared_ptr<Enviroment>(new Enviroment());
 };
 
+class TByteCodeCMDBegin: public TByteCodeCMD {
+public:
+    TByteCodeCMDBegin(size_t size);
+    void UpdateStack(TStack& Stack);
+private:
+    size_t sizeArgs;
+};
+
 class TByteCodeCMDDefine: public TByteCodeCMD {
 public:
     TByteCodeCMDDefine(std::string name, std::vector<std::string> identName,

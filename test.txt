@@ -8,3 +8,6 @@
 
 
 ((lambda (x) (+ x x)) 2)
+
+
+(begin 1 2 3)

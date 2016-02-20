@@ -149,10 +149,6 @@ private:
 
 
 class IfElseExprAST : public ExprAST {
-public:
-    std::shared_ptr<ExprAST> test;
-    std::shared_ptr<ExprAST> first;
-    std::shared_ptr<ExprAST> second;
 
 public:
   IfElseExprAST(ExprAST* TEST, ExprAST* First, ExprAST* Second)
@@ -160,6 +156,27 @@ public:
   {
       Type = SAT_IfElse;
   }
+  ExprAST* GetTest() {
+      return test.get();
+  }
+  ExprAST* GetFirst() {
+      return first.get();
+  }
+  ExprAST* GetSecond() {
+      return second.get();
+  }
+  bool IsSecond() {
+      if (second) {
+          return true;
+      } else {
+          return false;
+      }
+  }
+
+private:
+    std::shared_ptr<ExprAST> test;
+    std::shared_ptr<ExprAST> first;
+    std::shared_ptr<ExprAST> second;
 };
 
 class CondExprAST : public ExprAST {
@@ -176,8 +193,6 @@ public:
 };
 
 class BeginExprAST : public ExprAST {
-public:
-    std::vector<std::shared_ptr<ExprAST> > Args;
 
 public:
   BeginExprAST(std::vector<std::shared_ptr<ExprAST> > exprs)
@@ -185,13 +200,18 @@ public:
   {
       Type = SAT_Begin;
   }
+  size_t GetArgsSize() {
+      return Args.size();
+  }
+  ExprAST* GetArgsAt(size_t i) {
+      return Args.at(i).get();
+  }
+
+private:
+    std::vector<std::shared_ptr<ExprAST> > Args;
 };
 
 class LambdaExprAST : public ExprAST {
-public:
-    std::vector<std::shared_ptr<IdentAST> > Idents;
-    std::vector<std::shared_ptr<ExprAST> > Args;
-    std::vector<std::shared_ptr<ExprAST> >Body;
 
 public:
   LambdaExprAST(std::vector<std::shared_ptr<IdentAST> > idents, std::vector<std::shared_ptr<ExprAST> > args, std::vector<std::shared_ptr<ExprAST> > body)
@@ -199,6 +219,29 @@ public:
   {
       Type = SAT_Lambda;
   }
+  size_t GetIdentsSize() {
+      return Idents.size();
+  }
+  IdentAST* GetIdentsAt(size_t i) {
+      return Idents.at(i).get();
+  }
+  size_t GetArgsSize() {
+      return Args.size();
+  }
+  ExprAST* GetArgsAt(size_t i) {
+      return Args.at(i).get();
+  }
+  size_t GetBodySize() {
+      return Body.size();
+  }
+  ExprAST* GetBodyAt(size_t i) {
+      return Body.at(i).get();
+  }
+
+private:
+    std::vector<std::shared_ptr<IdentAST> > Idents;
+    std::vector<std::shared_ptr<ExprAST> > Args;
+    std::vector<std::shared_ptr<ExprAST> >Body;
 };
 
 
@@ -208,7 +251,17 @@ public:
     : Name(name), Args(args)
   {
   }
-public:
+  std::string GetName() {
+      return Name;
+  }
+  size_t GetArgsSize() {
+      return Args.size();
+  }
+  IdentAST* GetArgsAt(size_t i) {
+      return Args.at(i).get();
+  }
+
+private:
   std::string Name;
   std::vector<std::shared_ptr<IdentAST> > Args;
 };
@@ -221,7 +274,17 @@ public:
   {
       Type = SAT_Define;
   }
-public:
+  PrototypeAST* GetProto() {
+      return Proto.get();
+  }
+  size_t GetBodySize() {
+      return Body.size();
+  }
+  ExprAST* GetBodyAt(size_t i) {
+      return Body.at(i).get();
+  }
+
+private:
   std::shared_ptr< PrototypeAST >Proto;
   std::vector<std::shared_ptr<ExprAST> >Body;
 

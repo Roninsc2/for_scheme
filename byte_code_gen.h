@@ -13,6 +13,7 @@ public:
     void GenByteCode();
     void GenFuncByteCode(CallExprAST* func, Enviroment& defineParent);
     void GenIfElseByteCode(IfElseExprAST* expr, Enviroment& defineParent, size_t pos = 0,  std::string name = "");
+    void GenBeginByteCode(BeginExprAST* expr, Enviroment& defineParent, size_t pos = 0,  std::string name = "");
     void GenLambdaByteCode(LambdaExprAST* expr, Enviroment& defineParent,size_t pos = 0,  std::string name = "");
     void GenTaliCallByteCode(CallExprAST* func,  Enviroment& defineParent, size_t pos);
     void GenDefineByteCode(ExprAST* expr, Enviroment& defineParent, std::string name, size_t pos);

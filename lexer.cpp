@@ -7,10 +7,10 @@ TLexer::TLexer(const std::string fileName) {
         return;
     }
     Read();
+    fin.close();
 }
 
 TLexer::~TLexer() {
-    fin.close();
 }
 
 Token &TLexer::GetTokenAt(size_t i)

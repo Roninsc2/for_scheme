@@ -323,7 +323,15 @@ ExprAST* TParser::ParseCondFunc()
 
 ExprAST* TParser::ParseBeginFunc()
 {
-
+    std::vector<std::shared_ptr<ExprAST>> args;
+    while (true) {
+        GetNextToken();
+        if (CurrentToken.GetState() == State_Rbkt) {
+            break;
+        }
+        args.push_back(std::shared_ptr<ExprAST>(GetExprType()));
+    }
+    return new BeginExprAST(args);
 }
 
 CallExprAST* TParser::ConvertToPairAndList(std::vector<std::shared_ptr<ExprAST> > expr) {

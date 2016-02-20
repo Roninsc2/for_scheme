@@ -246,3 +246,21 @@ void TByteCodeCMDJump::SetCurrentPos(size_t pos) {
 void TByteCodeCMDJumpEndDefine::SetCurrentPos(size_t pos) {
     currentPos = pos;
 }
+
+TByteCodeCMDBegin::TByteCodeCMDBegin(size_t size)
+{
+    sizeArgs = size;
+}
+
+void TByteCodeCMDBegin::UpdateStack(TStack &Stack)
+{
+    if (Stack.GetStackSize() < sizeArgs) {
+        return;
+    } else {
+        std::vector<std::shared_ptr<ExprType>> exprs;
+        for (size_t i = 0; i < sizeArgs; i++) {
+            exprs.push_back(Stack.StackPop());
+        }
+        Stack.StackPushBack(exprs.at(0));
+    }
+}
